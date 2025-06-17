@@ -38,16 +38,16 @@ export function SimpleAuthProvider({ children }: { children: React.ReactNode }) 
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Demo accounts that always work
-      if (email === "admin@demo.com" && password === "demo123") {
-        const demoUser = {
-          id: "admin-demo",
-          email: "admin@demo.com",
-          name: "Admin Demo",
-          role: "admin",
+      // Replace the existing admin demo account check with:
+      if (email === "bryanjbenevolence@gmail.com" && password === "HeavensLive2024!") {
+        const ownerUser = {
+          id: "owner-main",
+          email: "bryanjbenevolence@gmail.com",
+          name: "Bryan J Benevolence",
+          role: "owner",
         }
-        setUser(demoUser)
-        localStorage.setItem("heavenslive_user", JSON.stringify(demoUser))
+        setUser(ownerUser)
+        localStorage.setItem("heavenslive_user", JSON.stringify(ownerUser))
         return true
       }
 

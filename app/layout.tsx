@@ -6,15 +6,16 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SimpleAuthProvider } from "@/components/simple-auth-provider"
 import { I18nProvider } from "@/lib/i18n/i18n-provider"
 import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { DemoModeBanner } from "@/components/demo-mode-banner"
-import { ErrorBoundary } from "@/components/error-boundary"
+import { LanguageDetectionBanner } from "@/components/language-detection-banner"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Heavenslive - Global Financial Platform",
   description:
-    "The world's most transparent financial platform with CRED cryptocurrency, global marketplace, and financial services.",
+    "The world's most transparent financial platform featuring CRED cryptocurrency, global marketplace, and interest-free financial assistance.",
     generator: 'v0.dev'
 }
 
@@ -24,21 +25,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.className} bg-black text-white`}>
-        <ErrorBoundary>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-            <I18nProvider>
-              <SimpleAuthProvider>
-                <div className="min-h-screen bg-black">
-                  <DemoModeBanner />
-                  <Header />
-                  <main>{children}</main>
-                </div>
-              </SimpleAuthProvider>
-            </I18nProvider>
-          </ThemeProvider>
-        </ErrorBoundary>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+          <I18nProvider>
+            <SimpleAuthProvider>
+              <div className="min-h-screen flex flex-col bg-black">
+                <DemoModeBanner />
+                <LanguageDetectionBanner />
+                <Header />
+                <main className="flex-1 bg-black">{children}</main>
+                <Footer />
+              </div>
+            </SimpleAuthProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
