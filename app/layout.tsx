@@ -3,18 +3,18 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { I18nProvider } from "@/lib/i18n/i18n-provider"
 import { SimpleAuthProvider } from "@/components/simple-auth-provider"
-import { ErrorBoundary } from "@/components/error-boundary"
+import { I18nProvider } from "@/lib/i18n/i18n-provider"
 import { Header } from "@/components/header"
 import { DemoModeBanner } from "@/components/demo-mode-banner"
-import { Toaster } from "@/components/ui/toaster"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Heavenslive - Global Financial Platform",
-  description: "The world's most transparent financial platform supporting 195+ countries",
+  description:
+    "The world's most transparent financial platform with CRED cryptocurrency, global marketplace, and financial services.",
     generator: 'v0.dev'
 }
 
@@ -24,18 +24,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-black text-white`}>
         <ErrorBoundary>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             <I18nProvider>
               <SimpleAuthProvider>
-                <div className="min-h-screen bg-background">
+                <div className="min-h-screen bg-black">
                   <DemoModeBanner />
                   <Header />
                   <main>{children}</main>
                 </div>
-                <Toaster />
               </SimpleAuthProvider>
             </I18nProvider>
           </ThemeProvider>
