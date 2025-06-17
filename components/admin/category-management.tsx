@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
@@ -17,20 +18,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Plus, Edit, Trash2, Tag } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Edit, Trash2, Tag, Eye, EyeOff } from "lucide-react"
+import { useI18n } from "@/lib/i18n/i18n-context"
+import { useToast } from "@/hooks/use-toast"
 
 interface Category {
-  id: number
+  id: string
   name: string
   description: string
   slug: string
-  parent_id: number | null
-  is_active: boolean
-  created_at: string
+  parentId?: string
+  isActive: boolean
+  productCount: number
+  createdAt: string
 }
 
 export function CategoryManagement() {
+  const { t } = useI18n()
+  const { toast } = useToast()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -39,8 +45,8 @@ export function CategoryManagement() {
     name: "",
     description: "",
     slug: "",
-    parent_id: null as number | null,
-    is_active: true,
+    parentId: "",
+    isActive: true,
   })
 
   useEffect(() => {
@@ -55,7 +61,7 @@ export function CategoryManagement() {
         setCategories(data.categories || [])
       }
     } catch (error) {
-      console.error("Error fetching categories:", error)
+      console.error("Failed to fetch categories:", error)
     } finally {
       setLoading(false)
     }
@@ -76,12 +82,22 @@ export function CategoryManagement() {
       })
 
       if (response.ok) {
+        toast({
+          title: editingCategory ? "Category updated" : "Category created",
+          description: "Category has been saved successfully",
+        })
         fetchCategories()
-        setIsDialogOpen(false)
         resetForm()
+        setIsDialogOpen(false)
+      } else {
+        throw new Error("Failed to save category")
       }
     } catch (error) {
-      console.error("Error saving category:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save category",
+        variant: "destructive",
+      })
     }
   }
 
@@ -91,13 +107,13 @@ export function CategoryManagement() {
       name: category.name,
       description: category.description,
       slug: category.slug,
-      parent_id: category.parent_id,
-      is_active: category.is_active,
+      parentId: category.parentId || "",
+      isActive: category.isActive,
     })
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (categoryId: number) => {
+  const handleDelete = async (categoryId: string) => {
     if (!confirm("Are you sure you want to delete this category?")) return
 
     try {
@@ -106,10 +122,36 @@ export function CategoryManagement() {
       })
 
       if (response.ok) {
+        toast({
+          title: "Category deleted",
+          description: "Category has been deleted successfully",
+        })
+        fetchCategories()
+      } else {
+        throw new Error("Failed to delete category")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const toggleCategoryStatus = async (categoryId: string, isActive: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/categories/${categoryId}/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
+      })
+
+      if (response.ok) {
         fetchCategories()
       }
     } catch (error) {
-      console.error("Error deleting category:", error)
+      console.error("Failed to toggle category status:", error)
     }
   }
 
@@ -118,8 +160,8 @@ export function CategoryManagement() {
       name: "",
       description: "",
       slug: "",
-      parent_id: null,
-      is_active: true,
+      parentId: "",
+      isActive: true,
     })
     setEditingCategory(null)
   }
@@ -132,142 +174,141 @@ export function CategoryManagement() {
   }
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading categories...</div>
+    return <div className="flex items-center justify-center h-64">{t("common.loading")}</div>
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Category Management</CardTitle>
-            <CardDescription>Manage marketplace categories and subcategories</CardDescription>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Tag className="h-5 w-5" />
+                Category Management
+              </CardTitle>
+              <CardDescription>Manage marketplace categories and subcategories</CardDescription>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingCategory ? "Edit Category" : "Add New Category"}</DialogTitle>
+                  <DialogDescription>
+                    {editingCategory
+                      ? "Update the category information below."
+                      : "Create a new category for the marketplace."}
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit}>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Category Name</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => {
+                          const name = e.target.value
+                          setFormData((prev) => ({
+                            ...prev,
+                            name,
+                            slug: generateSlug(name),
+                          }))
+                        }}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="slug">Slug</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter className="mt-6">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">{editingCategory ? "Update" : "Create"} Category</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Category
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingCategory ? "Edit Category" : "Add New Category"}</DialogTitle>
-                <DialogDescription>
-                  {editingCategory
-                    ? "Update the category information below."
-                    : "Create a new category for the marketplace."}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Category Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => {
-                        const name = e.target.value
-                        setFormData((prev) => ({
-                          ...prev,
-                          name,
-                          slug: generateSlug(name),
-                        }))
-                      }}
-                      placeholder="Enter category name"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                      placeholder="category-slug"
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                      placeholder="Category description"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">{editingCategory ? "Update" : "Create"} Category</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.length === 0 ? (
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    No categories found. Create your first category to get started.
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Products</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ) : (
-                categories.map((category) => (
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => (
                   <TableRow key={category.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4" />
-                        {category.name}
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{category.name}</div>
+                        <div className="text-sm text-muted-foreground">{category.description}</div>
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{category.slug}</TableCell>
-                    <TableCell className="max-w-xs truncate">{category.description || "No description"}</TableCell>
+                    <TableCell>{category.productCount}</TableCell>
                     <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          category.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {category.is_active ? "Active" : "Inactive"}
-                      </span>
+                      <Badge variant={category.isActive ? "default" : "secondary"}>
+                        {category.isActive ? "Active" : "Inactive"}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{new Date(category.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(category)}>
-                          <Edit className="w-4 h-4" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleCategoryStatus(category.id, category.isActive)}
+                        >
+                          {category.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDelete(category.id)}>
-                          <Trash2 className="w-4 h-4" />
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(category)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(category.id)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
+
+export default CategoryManagement

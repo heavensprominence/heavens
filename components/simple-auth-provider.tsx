@@ -1,85 +1,166 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
-import { authUtils, type User } from "@/lib/simple-auth"
+import { createContext, useContext, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
-interface AuthContextType {
+interface User {
+  id: string
+  email: string
+  name: string
+  role: "user" | "admin" | "super_admin" | "owner"
+  avatar?: string
+  createdAt: string
+}
+
+interface SimpleAuthContextType {
   user: User | null
-  isAuthenticated: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
+  signup: (email: string, password: string, name: string) => Promise<boolean>
   isLoading: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const SimpleAuthContext = createContext<SimpleAuthContextType | undefined>(undefined)
+
+export function useSimpleAuth() {
+  const context = useContext(SimpleAuthContext)
+  if (context === undefined) {
+    throw new Error("useSimpleAuth must be used within a SimpleAuthProvider")
+  }
+  return context
+}
 
 export function SimpleAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
-    // Load session on mount
-    const savedUser = authUtils.getSession()
-    setUser(savedUser)
-    setIsLoading(false)
+    checkAuth()
   }, [])
+
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem("auth-token")
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData)
+      } else {
+        localStorage.removeItem("auth-token")
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error)
+      localStorage.removeItem("auth-token")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch("/api/auth/simple-login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email, password }),
       })
 
-      if (response.ok) {
-        const userData = await response.json()
-        const user: User = {
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role,
-        }
+      const data = await response.json()
 
-        authUtils.setSession(user)
-        setUser(user)
+      if (response.ok) {
+        localStorage.setItem("auth-token", data.token)
+        setUser(data.user)
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        })
         return true
+      } else {
+        toast({
+          title: "Login failed",
+          description: data.error || "Invalid credentials",
+          variant: "destructive",
+        })
+        return false
       }
-      return false
     } catch (error) {
-      console.error("Login error:", error)
+      toast({
+        title: "Login failed",
+        description: "Network error occurred",
+        variant: "destructive",
+      })
+      return false
+    }
+  }
+
+  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, name }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem("auth-token", data.token)
+        setUser(data.user)
+        toast({
+          title: "Account created",
+          description: "Welcome to Heavenslive!",
+        })
+        return true
+      } else {
+        toast({
+          title: "Signup failed",
+          description: data.error || "Failed to create account",
+          variant: "destructive",
+        })
+        return false
+      }
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: "Network error occurred",
+        variant: "destructive",
+      })
       return false
     }
   }
 
   const logout = () => {
-    authUtils.clearSession()
+    localStorage.removeItem("auth-token")
     setUser(null)
+    router.push("/")
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully",
+    })
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        login,
-        logout,
-        isLoading,
-      }}
-    >
+    <SimpleAuthContext.Provider value={{ user, login, logout, signup, isLoading }}>
       {children}
-    </AuthContext.Provider>
+    </SimpleAuthContext.Provider>
   )
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within a SimpleAuthProvider")
-  }
-  return context
-}
-
-// Add this export alias at the end of the file
-export const useSimpleAuth = useAuth
+export default SimpleAuthProvider

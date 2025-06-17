@@ -1,50 +1,50 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { sql } from "@/lib/db"
+import { db } from "@/lib/db"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const categories = await sql`
-      SELECT * FROM categories 
-      ORDER BY name ASC
-    `
+    const result = await db.query(`
+      SELECT 
+        c.*,
+        COUNT(p.id) as product_count
+      FROM categories c
+      LEFT JOIN products p ON c.id = p.category_id
+      GROUP BY c.id
+      ORDER BY c.name
+    `)
 
     return NextResponse.json({
-      success: true,
-      categories: categories || [],
+      categories: result.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        slug: row.slug,
+        parentId: row.parent_id,
+        isActive: row.is_active,
+        productCount: Number.parseInt(row.product_count),
+        createdAt: row.created_at,
+      })),
     })
   } catch (error) {
-    console.error("Error fetching categories:", error)
-    return NextResponse.json({
-      success: false,
-      error: "Failed to fetch categories",
-      categories: [],
-    })
+    console.error("Failed to fetch categories:", error)
+    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, description, slug, parent_id, is_active } = body
+    const { name, description, slug, parentId, isActive } = await request.json()
 
-    const result = await sql`
-      INSERT INTO categories (name, description, slug, parent_id, is_active)
-      VALUES (${name}, ${description}, ${slug}, ${parent_id}, ${is_active})
-      RETURNING *
-    `
-
-    return NextResponse.json({
-      success: true,
-      category: result[0],
-    })
-  } catch (error) {
-    console.error("Error creating category:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to create category",
-      },
-      { status: 500 },
+    const result = await db.query(
+      `INSERT INTO categories (name, description, slug, parent_id, is_active)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [name, description, slug, parentId || null, isActive],
     )
+
+    return NextResponse.json({ category: result.rows[0] })
+  } catch (error) {
+    console.error("Failed to create category:", error)
+    return NextResponse.json({ error: "Failed to create category" }, { status: 500 })
   }
 }

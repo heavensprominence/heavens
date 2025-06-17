@@ -2,148 +2,183 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
+  LayoutDashboard,
   Users,
+  Coins,
+  ShoppingBag,
   CreditCard,
+  MessageSquare,
   Settings,
   BarChart3,
-  Coins,
-  FileText,
+  Globe,
   Shield,
+  Database,
   Gavel,
-  MessageSquare,
-  Home,
-  LogOut,
+  HandHeart,
+  TrendingUp,
+  Languages,
+  Palette,
 } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { cn } from "@/lib/utils"
+import { useI18n } from "@/lib/i18n/i18n-context"
 
-interface AdminSidebarProps {
-  userRole: string
-}
+const sidebarItems = [
+  {
+    title: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+    key: "common.dashboard",
+  },
+  {
+    title: "Users",
+    href: "/admin/users",
+    icon: Users,
+    key: "admin.users",
+  },
+  {
+    title: "CRED Management",
+    href: "/admin/cred",
+    icon: Coins,
+    key: "admin.credManagement",
+  },
+  {
+    title: "Marketplace",
+    href: "/admin/marketplace",
+    icon: ShoppingBag,
+    key: "admin.marketplace",
+  },
+  {
+    title: "Transactions",
+    href: "/admin/transactions",
+    icon: CreditCard,
+    key: "admin.transactions",
+  },
+  {
+    title: "Financial Assistance",
+    href: "/admin/financial",
+    icon: HandHeart,
+    key: "admin.financial",
+  },
+  {
+    title: "Auctions",
+    href: "/admin/auctions",
+    icon: Gavel,
+    key: "admin.auctions",
+  },
+  {
+    title: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3,
+    key: "admin.analytics",
+  },
+  {
+    title: "Global Markets",
+    href: "/admin/global",
+    icon: Globe,
+    key: "admin.globalMarkets",
+  },
+  {
+    title: "Parity System",
+    href: "/admin/parity",
+    icon: TrendingUp,
+    key: "admin.paritySystem",
+  },
+  {
+    title: "AI System",
+    href: "/admin/ai",
+    icon: Shield,
+    key: "admin.aiSystem",
+  },
+  {
+    title: "Database",
+    href: "/admin/database",
+    icon: Database,
+    key: "admin.database",
+  },
+  {
+    title: "Messages",
+    href: "/admin/messages",
+    icon: MessageSquare,
+    key: "admin.messages",
+  },
+]
 
-export function AdminSidebar({ userRole }: AdminSidebarProps) {
+const settingsItems = [
+  {
+    title: "General Settings",
+    href: "/admin/settings",
+    icon: Settings,
+    key: "admin.generalSettings",
+  },
+  {
+    title: "Language Settings",
+    href: "/admin/settings/language",
+    icon: Languages,
+    key: "admin.languageSettings",
+  },
+  {
+    title: "Appearance",
+    href: "/admin/settings/appearance",
+    icon: Palette,
+    key: "admin.appearance",
+  },
+]
+
+export function AdminSidebar() {
   const pathname = usePathname()
-
-  const navigation = [
-    {
-      name: "Dashboard",
-      href: "/admin",
-      icon: Home,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "Users",
-      href: "/admin/users",
-      icon: Users,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "Transactions",
-      href: "/admin/transactions",
-      icon: CreditCard,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "CRED Management",
-      href: "/admin/cred",
-      icon: Coins,
-      roles: ["owner"],
-    },
-    {
-      name: "Grants & Loans",
-      href: "/admin/financial",
-      icon: FileText,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "Marketplace",
-      href: "/admin/marketplace",
-      icon: Gavel,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "Communications",
-      href: "/admin/communications",
-      icon: MessageSquare,
-      roles: ["admin", "super_admin", "owner"],
-    },
-    {
-      name: "Analytics",
-      href: "/admin/analytics",
-      icon: BarChart3,
-      roles: ["super_admin", "owner"],
-    },
-    {
-      name: "System Settings",
-      href: "/admin/settings",
-      icon: Settings,
-      roles: ["super_admin", "owner"],
-    },
-    {
-      name: "Admin Management",
-      href: "/admin/admins",
-      icon: Shield,
-      roles: ["owner"],
-    },
-  ]
-
-  const filteredNavigation = navigation.filter((item) => item.roles.includes(userRole))
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "owner":
-        return "bg-red-500"
-      case "super_admin":
-        return "bg-purple-500"
-      case "admin":
-        return "bg-blue-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
+  const { t } = useI18n()
 
   return (
-    <div className="w-64 bg-white shadow-lg">
-      <div className="p-6 border-b">
-        <div className="flex items-center space-x-2">
-          <Coins className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">Admin Panel</span>
-        </div>
-        <Badge className={cn("mt-2", getRoleBadgeColor(userRole))}>{userRole.replace("_", " ").toUpperCase()}</Badge>
+    <div className="flex h-full w-64 flex-col bg-background border-r">
+      <div className="flex h-16 items-center border-b px-6">
+        <h2 className="text-lg font-semibold">{t("admin.adminPanel")}</h2>
       </div>
 
-      <nav className="mt-6">
-        <div className="px-3">
-          {filteredNavigation.map((item) => {
-            const isActive = pathname === item.href
-            return (
+      <nav className="flex-1 space-y-1 p-4">
+        <div className="space-y-1">
+          {sidebarItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname === item.href
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {t(item.key)}
+            </Link>
+          ))}
+        </div>
+
+        <div className="border-t pt-4 mt-4">
+          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            {t("admin.settings")}
+          </h3>
+          <div className="space-y-1">
+            {settingsItems.map((item) => (
               <Link
-                key={item.name}
+                key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md mb-1 transition-colors",
-                  isActive
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  pathname === item.href
                     ? "bg-primary text-primary-foreground"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
+                <item.icon className="h-4 w-4" />
+                {t(item.key)}
               </Link>
-            )
-          })}
+            ))}
+          </div>
         </div>
       </nav>
-
-      <div className="absolute bottom-4 left-4 right-4">
-        <Button variant="outline" className="w-full" onClick={() => signOut()}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
-        </Button>
-      </div>
     </div>
   )
 }
+
+export default AdminSidebar

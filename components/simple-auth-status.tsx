@@ -1,66 +1,86 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/components/simple-auth-provider"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { User, CheckCircle, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { User, Settings, LogOut, Shield } from "lucide-react"
+import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { useI18n } from "@/lib/i18n/i18n-context"
+import Link from "next/link"
 
 export function SimpleAuthStatus() {
-  const { user, isAuthenticated, isLoading } = useAuth()
-  const [isDevelopment, setIsDevelopment] = useState(false)
+  const { user, logout, isLoading } = useSimpleAuth()
+  const { t } = useI18n()
 
-  useEffect(() => {
-    // Check if we're in development by checking for localhost or development indicators
-    const isDev =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1" ||
-      window.location.port === "3000"
+  if (isLoading) {
+    return <div className="h-8 w-8 animate-pulse bg-muted rounded-full" />
+  }
 
-    setIsDevelopment(isDev)
-  }, [])
-
-  if (!isDevelopment) {
-    return null // Only show in development
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" asChild>
+          <Link href="/auth/signin">{t("auth.signIn")}</Link>
+        </Button>
+        <Button asChild>
+          <Link href="/auth/signup">{t("auth.signUp")}</Link>
+        </Button>
+      </div>
+    )
   }
 
   return (
-    <Card className="mb-4 border-green-200 bg-green-50">
-      <CardHeader>
-        <CardTitle className="text-sm flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Authentication Status
-        </CardTitle>
-        <CardDescription className="text-xs">Current session information</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Badge variant={isAuthenticated ? "default" : isLoading ? "secondary" : "destructive"}>
-              {isAuthenticated && <CheckCircle className="w-3 h-3 mr-1" />}
-              {!isAuthenticated && !isLoading && <XCircle className="w-3 h-3 mr-1" />}
-              {isLoading ? "Loading..." : isAuthenticated ? "Authenticated" : "Not Authenticated"}
-            </Badge>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+            <AvatarFallback>{user.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <div className="flex items-center justify-start gap-2 p-2">
+          <div className="flex flex-col space-y-1 leading-none">
+            <p className="font-medium">{user.name}</p>
+            <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
           </div>
-
-          {user && (
-            <div className="text-xs space-y-1">
-              <p>
-                <strong>User:</strong> {user.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {user.email}
-              </p>
-              <p>
-                <strong>Role:</strong> {user.role}
-              </p>
-              <p>
-                <strong>ID:</strong> {user.id}
-              </p>
-            </div>
-          )}
         </div>
-      </CardContent>
-    </Card>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="mr-2 h-4 w-4" />
+            {t("auth.profile")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard">
+            <Settings className="mr-2 h-4 w-4" />
+            {t("auth.dashboard")}
+          </Link>
+        </DropdownMenuItem>
+        {(user.role === "admin" || user.role === "super_admin" || user.role === "owner") && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">
+              <Shield className="mr-2 h-4 w-4" />
+              {t("auth.adminPanel")}
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={logout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          {t("auth.signOut")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
+
+export default SimpleAuthStatus

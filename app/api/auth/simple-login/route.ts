@@ -1,64 +1,48 @@
 import { type NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { sql } from "@/lib/db"
+import jwt from "jsonwebtoken"
+import { db } from "@/lib/db"
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
     if (!email || !password) {
-      return NextResponse.json({ message: "Email and password required" }, { status: 400 })
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    // Check if database is available
-    if (!process.env.DATABASE_URL) {
-      // Demo mode - allow a demo admin login
-      if (email === "admin@demo.com" && password === "demo123") {
-        return NextResponse.json({
-          id: "1",
-          email: "admin@demo.com",
-          name: "Demo Admin",
-          role: "owner",
-        })
-      }
+    const result = await db.query(
+      "SELECT id, email, name, password_hash, role, created_at FROM users WHERE email = $1",
+      [email.toLowerCase()],
+    )
 
-      return NextResponse.json(
-        {
-          message: "Database not configured. Use admin@demo.com / demo123 for demo.",
-        },
-        { status: 503 },
-      )
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    const user = await sql`
-      SELECT id, email, password_hash, first_name, last_name, role, status
-      FROM users 
-      WHERE email = ${email} AND status = 'active'
-    `
+    const user = result.rows[0]
+    const isValidPassword = await bcrypt.compare(password, user.password_hash)
 
-    if (user.length === 0) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 })
+    if (!isValidPassword) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user[0].password_hash)
-
-    if (!isPasswordValid) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 })
-    }
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || "fallback-secret", {
+      expiresIn: "7d",
+    })
 
     return NextResponse.json({
-      id: user[0].id.toString(),
-      email: user[0].email,
-      name: `${user[0].first_name} ${user[0].last_name}`,
-      role: user[0].role,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        createdAt: user.created_at,
+      },
     })
   } catch (error) {
     console.error("Login error:", error)
-    return NextResponse.json(
-      {
-        message: "Database connection error. Try demo mode: admin@demo.com / demo123",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -4,23 +4,30 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Eye, Package, Truck, CheckCircle, XCircle } from "lucide-react"
+import { Search, Eye, Package, Truck, CheckCircle } from "lucide-react"
+import { useI18n } from "@/lib/i18n/i18n-context"
 
 interface Order {
-  id: number
-  order_number: string
-  buyer_name: string
-  seller_name: string
-  total_amount: string
-  status: string
-  created_at: string
-  items_count: number
+  id: string
+  orderNumber: string
+  customerName: string
+  customerEmail: string
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+  total: number
+  currency: string
+  createdAt: string
+  items: number
 }
 
 export function OrderManagement() {
+  const { t } = useI18n()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
 
   useEffect(() => {
     fetchOrders()
@@ -34,13 +41,13 @@ export function OrderManagement() {
         setOrders(data.orders || [])
       }
     } catch (error) {
-      console.error("Error fetching orders:", error)
+      console.error("Failed to fetch orders:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const updateOrderStatus = async (orderId: number, newStatus: string) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const response = await fetch("/api/admin/orders/status", {
         method: "POST",
@@ -49,99 +56,138 @@ export function OrderManagement() {
       })
 
       if (response.ok) {
-        fetchOrders() // Refresh the list
+        fetchOrders()
       }
     } catch (error) {
-      console.error("Error updating order status:", error)
+      console.error("Failed to update order status:", error)
     }
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { color: "bg-yellow-100 text-yellow-800", icon: Package },
-      processing: { color: "bg-blue-100 text-blue-800", icon: Package },
-      shipped: { color: "bg-purple-100 text-purple-800", icon: Truck },
-      delivered: { color: "bg-green-100 text-green-800", icon: CheckCircle },
-      cancelled: { color: "bg-red-100 text-red-800", icon: XCircle },
-    }
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
-    const Icon = config.icon
+    const variants = {
+      pending: "secondary",
+      processing: "default",
+      shipped: "outline",
+      delivered: "default",
+      cancelled: "destructive",
+    } as const
 
     return (
-      <Badge className={config.color}>
-        <Icon className="w-3 h-3 mr-1" />
+      <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     )
   }
 
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
   if (loading) {
-    return <div className="flex justify-center p-8">Loading orders...</div>
+    return <div className="flex items-center justify-center h-64">{t("common.loading")}</div>
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Order Management</CardTitle>
-        <CardDescription>Manage and track all platform orders</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order #</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead>Seller</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.length === 0 ? (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Order Management
+          </CardTitle>
+          <CardDescription>Manage and track all customer orders</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No orders found
-                  </TableCell>
+                  <TableHead>Order #</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ) : (
-                orders.map((order) => (
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{order.buyer_name}</TableCell>
-                    <TableCell>{order.seller_name}</TableCell>
-                    <TableCell>${order.total_amount}</TableCell>
-                    <TableCell>{order.items_count} items</TableCell>
+                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{order.customerName}</div>
+                        <div className="text-sm text-muted-foreground">{order.customerEmail}</div>
+                      </div>
+                    </TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{order.items}</TableCell>
+                    <TableCell>
+                      {order.total} {order.currency}
+                    </TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="w-4 h-4" />
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
                         </Button>
                         {order.status === "pending" && (
-                          <Button size="sm" onClick={() => updateOrderStatus(order.id, "processing")}>
-                            Process
+                          <Button variant="outline" size="sm" onClick={() => updateOrderStatus(order.id, "processing")}>
+                            <Package className="h-4 w-4" />
                           </Button>
                         )}
                         {order.status === "processing" && (
-                          <Button size="sm" onClick={() => updateOrderStatus(order.id, "shipped")}>
-                            Ship
+                          <Button variant="outline" size="sm" onClick={() => updateOrderStatus(order.id, "shipped")}>
+                            <Truck className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {order.status === "shipped" && (
+                          <Button variant="outline" size="sm" onClick={() => updateOrderStatus(order.id, "delivered")}>
+                            <CheckCircle className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
+
+export default OrderManagement
