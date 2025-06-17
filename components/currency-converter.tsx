@@ -114,7 +114,7 @@ export function CurrencyConverter() {
 
   const getPopularCurrencies = () => {
     return currencies.filter((c) =>
-      ["USD", "EUR", "GBP", "JPY", "CNY", "INR", "CRED", "CAD", "AUD", "BRL"].includes(c.currencyCode),
+      ["USD", "EUR", "GBP", "JPY", "CNY", "INR", "CRED", "CAD", "AUS", "BRL"].includes(c.currencyCode),
     )
   }
 
@@ -143,13 +143,6 @@ export function CurrencyConverter() {
     return "🌐 Other"
   }
 
-  const filteredCurrencies = currencies.filter(
-    (currency) =>
-      currency.countryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      currency.currencyCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      currency.currencyName.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
-
   const getSelectedCurrency = (code: string) => {
     return currencies.find((c) => c.currencyCode === code)
   }
@@ -159,17 +152,17 @@ export function CurrencyConverter() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Coins className="h-5 w-5" />
-            Global CRED Currency Converter
+            <Coins className="h-5 w-5" />🌍 Global CRED Currency Converter
           </CardTitle>
           <CardDescription>
-            Convert between CRED and any of the 195+ supported world currencies with real-time parity rates
+            Convert between CRED and any of the 195+ supported world currencies with real-time parity rates and
+            beautiful flag emojis
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Popular Currencies */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">Popular Currencies</Label>
+            <Label className="text-sm font-medium mb-2 block">🔥 Popular Currencies</Label>
             <div className="flex flex-wrap gap-2">
               {getPopularCurrencies().map((currency) => (
                 <Badge
@@ -323,7 +316,7 @@ export function CurrencyConverter() {
           </div>
 
           <Button onClick={handleConvert} disabled={loading} className="w-full" size="lg">
-            {loading ? "Converting..." : "Convert Currency"}
+            {loading ? "Converting..." : "🔄 Convert Currency"}
           </Button>
 
           {error && (
@@ -369,8 +362,7 @@ export function CurrencyConverter() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Global Coverage
+              <Globe className="h-4 w-4" />🌍 Global Coverage
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -382,8 +374,7 @@ export function CurrencyConverter() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              CRED Base Rate
+              <TrendingUp className="h-4 w-4" />💎 CRED Base Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -395,8 +386,7 @@ export function CurrencyConverter() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Coins className="h-4 w-4" />
-              Real-time Updates
+              <Coins className="h-4 w-4" />⚡ Real-time Updates
             </CardTitle>
           </CardHeader>
           <CardContent>

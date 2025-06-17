@@ -8,11 +8,10 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       currencies,
-      total: currencies.length,
-      timestamp: new Date().toISOString(),
+      count: currencies.length,
     })
   } catch (error) {
     console.error("Error fetching currencies:", error)
-    return NextResponse.json({ error: "Failed to fetch currencies" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Failed to fetch currencies" }, { status: 500 })
   }
 }

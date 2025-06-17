@@ -6,30 +6,21 @@ export async function POST(request: NextRequest) {
     const { amount, fromCurrency, toCurrency } = await request.json()
 
     if (!amount || !fromCurrency || !toCurrency) {
-      return NextResponse.json(
-        { error: "Missing required parameters: amount, fromCurrency, toCurrency" },
-        { status: 400 },
-      )
+      return NextResponse.json({ success: false, error: "Missing required parameters" }, { status: 400 })
     }
 
-    if (typeof amount !== "number" || amount <= 0) {
-      return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 })
+    if (amount <= 0) {
+      return NextResponse.json({ success: false, error: "Amount must be greater than 0" }, { status: 400 })
     }
 
-    const conversion = await credParity.convertBetweenCurrencies(amount, fromCurrency, toCurrency)
+    const conversion = await credParity.convertBetweenCurrencies(Number.parseFloat(amount), fromCurrency, toCurrency)
 
     return NextResponse.json({
       success: true,
       conversion,
     })
   } catch (error) {
-    console.error("Currency conversion error:", error)
-    return NextResponse.json(
-      {
-        error: "Conversion failed",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("Error converting currency:", error)
+    return NextResponse.json({ success: false, error: "Failed to convert currency" }, { status: 500 })
   }
 }

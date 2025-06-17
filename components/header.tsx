@@ -6,66 +6,56 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageSelector } from "@/components/language-selector"
 import { Badge } from "@/components/ui/badge"
-import { Coins, ShoppingBag, Gavel, HandHeart, TrendingUp, MessageSquare } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Coins, ShoppingBag, Gavel, HandHeart, TrendingUp, MessageSquare, Menu, X } from "lucide-react"
+import { useState } from "react"
 
 export function Header() {
   const { user, logout } = useSimpleAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navigationItems = [
+    { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+    { href: "/currencies", icon: Coins, label: "Currencies" },
+    { href: "/auctions", icon: Gavel, label: "Auctions" },
+    { href: "/financial", icon: HandHeart, label: "Grants & Loans" },
+    { href: "/trading", icon: TrendingUp, label: "Trading" },
+    { href: "/messages", icon: MessageSquare, label: "Communication" },
+  ]
 
   return (
-    <header className="border-b border-gray-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
+    <header className="border-b border-gray-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60 sticky top-0 z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center space-x-2">
-            <Coins className="h-6 w-6 text-white" />
-            <span className="text-xl font-bold text-white">Heavenslive</span>
-          </Link>
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Coins className="h-6 w-6 text-white" />
+          <span className="text-xl font-bold text-white">Heavenslive</span>
+        </Link>
 
-          <nav className="hidden md:flex items-center space-x-8">
+        {/* Desktop Navigation - Hidden on mobile/tablet */}
+        <nav className="hidden xl:flex items-center space-x-6">
+          {navigationItems.map((item) => (
             <Link
-              href="/marketplace"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              key={item.href}
+              href={item.href}
+              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors text-sm"
             >
-              <ShoppingBag className="h-4 w-4" />
-              <span>Marketplace</span>
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
             </Link>
-            <Link
-              href="/auctions"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <Gavel className="h-4 w-4" />
-              <span>Auctions</span>
-            </Link>
-            <Link
-              href="/financial"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <HandHeart className="h-4 w-4" />
-              <span>Grants & Loans</span>
-            </Link>
-            <Link
-              href="/trading"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span>Trading</span>
-            </Link>
-            <Link
-              href="/messages"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Communication</span>
-            </Link>
-          </nav>
-        </div>
+          ))}
+        </nav>
 
-        <div className="flex items-center space-x-4">
+        {/* Right side controls */}
+        <div className="flex items-center space-x-2">
+          {/* Theme and Language - Always visible */}
           <ThemeToggle />
           <LanguageSelector />
 
+          {/* User section */}
           {user ? (
             <div className="flex items-center space-x-3">
-              <div className="hidden sm:block">
+              <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-white">{user.name}</p>
                 <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                   {user.role}
@@ -77,19 +67,77 @@ export function Header() {
                 className="border-gray-600 text-white hover:bg-gray-800"
                 onClick={logout}
               >
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Out</span>
               </Button>
             </div>
           ) : (
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm" className="text-white hover:bg-gray-800" asChild>
-                <Link href="/auth/signin">Sign In</Link>
+                <Link href="/auth/signin">
+                  <span className="hidden sm:inline">Sign In</span>
+                  <span className="sm:hidden">In</span>
+                </Link>
               </Button>
               <Button size="sm" className="bg-white text-black hover:bg-gray-200" asChild>
-                <Link href="/auth/signup">Sign Up</Link>
+                <Link href="/auth/signup">
+                  <span className="hidden sm:inline">Sign Up</span>
+                  <span className="sm:hidden">Up</span>
+                </Link>
               </Button>
             </div>
           )}
+
+          {/* Mobile Menu Button - Visible on mobile/tablet */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="xl:hidden text-white hover:bg-gray-800">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 bg-gray-900 border-gray-700">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-2">
+                  <Coins className="h-6 w-6 text-white" />
+                  <span className="text-xl font-bold text-white">Heavenslive</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-white hover:bg-gray-800"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Mobile Navigation */}
+              <nav className="flex flex-col space-y-4">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors p-3 rounded-md hover:bg-gray-800"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-lg">{item.label}</span>
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Mobile User Info */}
+              {user && (
+                <div className="mt-8 p-4 bg-gray-800 rounded-md">
+                  <p className="text-white font-medium">{user.name}</p>
+                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-300 mt-1">
+                    {user.role}
+                  </Badge>
+                </div>
+              )}
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
