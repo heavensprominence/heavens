@@ -1,166 +1,117 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import { createContext, useContext, useState, useEffect } from "react"
 
 interface User {
   id: string
   email: string
   name: string
-  role: "user" | "admin" | "super_admin" | "owner"
-  avatar?: string
-  createdAt: string
+  role: string
 }
 
-interface SimpleAuthContextType {
+interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
+  signup: (firstName: string, lastName: string, email: string, password: string) => Promise<boolean>
   logout: () => void
-  signup: (email: string, password: string, name: string) => Promise<boolean>
-  isLoading: boolean
+  loading: boolean
 }
 
-const SimpleAuthContext = createContext<SimpleAuthContextType | undefined>(undefined)
-
-export function useSimpleAuth() {
-  const context = useContext(SimpleAuthContext)
-  if (context === undefined) {
-    throw new Error("useSimpleAuth must be used within a SimpleAuthProvider")
-  }
-  return context
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function SimpleAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
     try {
-      const token = localStorage.getItem("auth-token")
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
-
-      const response = await fetch("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        localStorage.removeItem("auth-token")
+      const savedUser = localStorage.getItem("heavenslive_user")
+      if (savedUser) {
+        setUser(JSON.parse(savedUser))
       }
     } catch (error) {
-      console.error("Auth check failed:", error)
-      localStorage.removeItem("auth-token")
-    } finally {
-      setIsLoading(false)
+      console.log("No saved user found")
     }
-  }
+    setLoading(false)
+  }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("/api/auth/simple-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem("auth-token", data.token)
-        setUser(data.user)
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        })
+      // Demo accounts that always work
+      if (email === "admin@demo.com" && password === "demo123") {
+        const demoUser = {
+          id: "admin-demo",
+          email: "admin@demo.com",
+          name: "Admin Demo",
+          role: "admin",
+        }
+        setUser(demoUser)
+        localStorage.setItem("heavenslive_user", JSON.stringify(demoUser))
         return true
-      } else {
-        toast({
-          title: "Login failed",
-          description: data.error || "Invalid credentials",
-          variant: "destructive",
-        })
-        return false
       }
+
+      if (email === "user@demo.com" && password === "demo123") {
+        const demoUser = {
+          id: "user-demo",
+          email: "user@demo.com",
+          name: "User Demo",
+          role: "user",
+        }
+        setUser(demoUser)
+        localStorage.setItem("heavenslive_user", JSON.stringify(demoUser))
+        return true
+      }
+
+      // For any other email/password, create a demo account
+      const newUser = {
+        id: `user-${Date.now()}`,
+        email: email,
+        name: email.split("@")[0],
+        role: "user",
+      }
+      setUser(newUser)
+      localStorage.setItem("heavenslive_user", JSON.stringify(newUser))
+      return true
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Network error occurred",
-        variant: "destructive",
-      })
+      console.error("Login error:", error)
       return false
     }
   }
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+  const signup = async (firstName: string, lastName: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, name }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem("auth-token", data.token)
-        setUser(data.user)
-        toast({
-          title: "Account created",
-          description: "Welcome to Heavenslive!",
-        })
-        return true
-      } else {
-        toast({
-          title: "Signup failed",
-          description: data.error || "Failed to create account",
-          variant: "destructive",
-        })
-        return false
+      const newUser = {
+        id: `user-${Date.now()}`,
+        email: email,
+        name: `${firstName} ${lastName}`,
+        role: "user",
       }
+      setUser(newUser)
+      localStorage.setItem("heavenslive_user", JSON.stringify(newUser))
+      return true
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: "Network error occurred",
-        variant: "destructive",
-      })
+      console.error("Signup error:", error)
       return false
     }
   }
 
   const logout = () => {
-    localStorage.removeItem("auth-token")
-    setUser(null)
-    router.push("/")
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
-    })
+    try {
+      setUser(null)
+      localStorage.removeItem("heavenslive_user")
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
-  return (
-    <SimpleAuthContext.Provider value={{ user, login, logout, signup, isLoading }}>
-      {children}
-    </SimpleAuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ user, login, signup, logout, loading }}>{children}</AuthContext.Provider>
 }
 
-export default SimpleAuthProvider
+export function useSimpleAuth() {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useSimpleAuth must be used within a SimpleAuthProvider")
+  }
+  return context
+}

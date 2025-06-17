@@ -1,60 +1,64 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { SimpleAuthStatus } from "@/components/simple-auth-status"
-import { LanguageSelector } from "@/components/language-selector"
+import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useI18n } from "@/lib/i18n/i18n-context"
-import { MobileMenu } from "./mobile-menu"
+import { LanguageSelector } from "@/components/language-selector"
+import { Badge } from "@/components/ui/badge"
 
 export function Header() {
-  const pathname = usePathname()
-  const { t } = useI18n()
-
-  const isActive = (path: string) => {
-    return pathname === path
-  }
+  const { user, logout } = useSimpleAuth()
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <MobileMenu />
-          <Link href="/" className="font-bold text-xl">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="flex items-center space-x-6">
+          <Link href="/" className="text-xl font-bold">
             Heavenslive
           </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link
-              href="/marketplace"
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/marketplace") ? "text-primary" : "text-muted-foreground"}`}
-            >
-              {t("common.marketplace")}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link href="/marketplace" className="text-sm font-medium hover:text-primary">
+              Marketplace
             </Link>
-            <Link
-              href="/dashboard"
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/dashboard") ? "text-primary" : "text-muted-foreground"}`}
-            >
-              {t("common.dashboard")}
+            <Link href="/dashboard" className="text-sm font-medium hover:text-primary">
+              Dashboard
             </Link>
-            <Link
-              href="/community"
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/community") ? "text-primary" : "text-muted-foreground"}`}
-            >
-              {t("common.community")}
+            <Link href="/community" className="text-sm font-medium hover:text-primary">
+              Community
             </Link>
-            <Link
-              href="/support"
-              className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/support") ? "text-primary" : "text-muted-foreground"}`}
-            >
-              {t("common.support")}
+            <Link href="/support" className="text-sm font-medium hover:text-primary">
+              Support
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center space-x-4">
           <ThemeToggle />
           <LanguageSelector />
-          <SimpleAuthStatus />
+
+          {user ? (
+            <div className="flex items-center space-x-3">
+              <div className="hidden sm:block">
+                <p className="text-sm font-medium">{user.name}</p>
+                <Badge variant="outline" className="text-xs">
+                  {user.role}
+                </Badge>
+              </div>
+              <Button variant="outline" size="sm" onClick={logout}>
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/auth/signin">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/auth/signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -1,4 +1,4 @@
-import { db } from "./db"
+import { sql } from "@/lib/db"
 
 export enum AuditLogAction {
   USER_LOGIN = "user_login",
@@ -27,20 +27,31 @@ export async function createAuditLog(
   targetType?: string,
 ) {
   try {
-    await db.query(
-      `INSERT INTO audit_logs (action, user_id, target_id, target_type, details, ip_address, user_agent)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [
-        action,
-        userId,
-        targetId || null,
-        targetType || null,
-        JSON.stringify(details),
-        details.ipAddress || null,
-        details.userAgent || null,
-      ],
-    )
+    await sql`
+      INSERT INTO audit_logs (action, user_id, target_id, target_type, details, ip_address, user_agent, created_at)
+      VALUES (${action}, ${userId}, ${targetId || null}, ${targetType || null}, ${JSON.stringify(details)}, ${
+        details.ipAddress || null
+      }, ${details.userAgent || null}, CURRENT_TIMESTAMP)
+    `
   } catch (error) {
     console.error("Failed to create audit log:", error)
+  }
+}
+
+export async function getAuditLogs(limit = 100, offset = 0) {
+  try {
+    return await sql`
+      SELECT 
+        al.*,
+        u.first_name || ' ' || u.last_name as user_name,
+        u.email as user_email
+      FROM audit_logs al
+      LEFT JOIN users u ON al.user_id::integer = u.id
+      ORDER BY al.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
+  } catch (error) {
+    console.error("Error fetching audit logs:", error)
+    return []
   }
 }
