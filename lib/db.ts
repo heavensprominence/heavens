@@ -1,22 +1,9 @@
 import { neon } from "@neondatabase/serverless"
 
+// Create the sql connection
+export const sql = neon(process.env.DATABASE_URL || "postgresql://placeholder:placeholder@placeholder:5432/placeholder")
+
 // Enhanced database connection with error handling
-let sql: any
-
-try {
-  if (!process.env.DATABASE_URL) {
-    console.error("❌ DATABASE_URL environment variable is not set")
-    throw new Error("Database URL not configured")
-  }
-
-  sql = neon(process.env.DATABASE_URL)
-  console.log("✅ Database connection initialized")
-} catch (error) {
-  console.error("❌ Database initialization failed:", error)
-  // Fallback to prevent crashes
-  sql = () => Promise.resolve([])
-}
-
 export const db = {
   query: async (text: string, params?: any[]) => {
     try {
@@ -37,17 +24,14 @@ export const db = {
 export async function getUserById(id: number) {
   try {
     console.log("🔍 Getting user by ID:", id)
-    const result = await db.query(
-      `
+    const result = await sql`
       SELECT u.*, 
              w.wallet_address as primary_wallet,
              w.balance as primary_balance
       FROM users u
       LEFT JOIN wallets w ON u.id = w.user_id AND w.is_primary = true
-      WHERE u.id = $1
-    `,
-      [id],
-    )
+      WHERE u.id = ${id}
+    `
 
     console.log("✅ User query result:", result.length > 0 ? "Found" : "Not found")
     return result[0] || null
@@ -60,12 +44,9 @@ export async function getUserById(id: number) {
 export async function getUserByEmail(email: string) {
   try {
     console.log("🔍 Getting user by email:", email)
-    const result = await db.query(
-      `
-      SELECT * FROM users WHERE email = $1
-    `,
-      [email],
-    )
+    const result = await sql`
+      SELECT * FROM users WHERE email = ${email}
+    `
 
     console.log("✅ User email query result:", result.length > 0 ? "Found" : "Not found")
     return result[0] || null
@@ -85,21 +66,11 @@ export async function createUser(userData: {
 }) {
   try {
     console.log("🔍 Creating user:", userData.email)
-    const result = await db.query(
-      `
+    const result = await sql`
       INSERT INTO users (email, password_hash, first_name, last_name, registration_number, registration_bonus_amount)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES (${userData.email}, ${userData.password_hash}, ${userData.first_name}, ${userData.last_name}, ${userData.registration_number}, ${userData.registration_bonus_amount})
       RETURNING *
-    `,
-      [
-        userData.email,
-        userData.password_hash,
-        userData.first_name,
-        userData.last_name,
-        userData.registration_number,
-        userData.registration_bonus_amount,
-      ],
-    )
+    `
 
     console.log("✅ User created successfully:", result[0]?.id)
     return result[0]
@@ -112,8 +83,7 @@ export async function createUser(userData: {
 export async function getPublicLedger(limit = 10, offset = 0) {
   try {
     console.log("🔍 Getting public ledger, limit:", limit, "offset:", offset)
-    const result = await db.query(
-      `
+    const result = await sql`
       SELECT 
         t.transaction_hash,
         t.amount,
@@ -135,10 +105,8 @@ export async function getPublicLedger(limit = 10, offset = 0) {
       LEFT JOIN wallets w2 ON t.to_wallet_id = w2.id
       WHERE t.status = 'completed'
       ORDER BY t.completed_at DESC
-      LIMIT $1 OFFSET $2
-    `,
-      [limit, offset],
-    )
+      LIMIT ${limit} OFFSET ${offset}
+    `
 
     console.log("✅ Public ledger query result:", result.length, "transactions")
     return result
