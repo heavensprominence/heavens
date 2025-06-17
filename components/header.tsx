@@ -32,8 +32,8 @@ export function Header() {
           <span className="text-xl font-bold text-white">Heavenslive</span>
         </Link>
 
-        {/* Desktop Navigation - Hidden on mobile/tablet */}
-        <nav className="hidden xl:flex items-center space-x-6">
+        {/* Desktop Navigation - Shows on laptop and larger */}
+        <nav className="hidden lg:flex items-center space-x-6">
           {navigationItems.map((item) => (
             <Link
               key={item.href}
@@ -88,10 +88,10 @@ export function Header() {
             </div>
           )}
 
-          {/* Mobile Menu Button - Visible on mobile/tablet */}
+          {/* Mobile Menu Button - Hidden on laptop and larger */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="xl:hidden text-white hover:bg-gray-800">
+              <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-gray-800">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
