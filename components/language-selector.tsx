@@ -15,20 +15,20 @@ export function LanguageSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="text-white hover:bg-gray-800">
           <Languages className="h-4 w-4" />
           <span className="sr-only">Select language</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-gray-900 border-gray-700 text-white">
         {availableLocales.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => setLocale(lang.code)}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between hover:bg-gray-800 focus:bg-gray-800"
           >
             <span>{lang.nativeName}</span>
-            {locale === lang.code && <Check className="h-4 w-4" />}
+            {locale === lang.code && <Check className="h-4 w-4 text-green-400" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

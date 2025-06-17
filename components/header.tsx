@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useSimpleAuth } from "@/components/simple-auth-provider"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageSelector } from "@/components/language-selector"
 import { Badge } from "@/components/ui/badge"
 import { Coins, ShoppingBag, Gavel, HandHeart, TrendingUp, MessageSquare } from "lucide-react"
 
@@ -60,6 +61,7 @@ export function Header() {
 
         <div className="flex items-center space-x-4">
           <ThemeToggle />
+          <LanguageSelector />
 
           {user ? (
             <div className="flex items-center space-x-3">
