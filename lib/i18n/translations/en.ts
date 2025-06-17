@@ -26,6 +26,11 @@ export default {
     no: "No",
     confirm: "Confirm",
     submit: "Submit",
+    currencies: "Currencies",
+    auctions: "Auctions",
+    trading: "Trading",
+    communication: "Communication",
+    grants: "Grants & Loans",
   },
   nav: {
     home: "Home",
@@ -39,6 +44,11 @@ export default {
     signIn: "Sign In",
     signUp: "Sign Up",
     signOut: "Sign Out",
+    currencies: "Currencies",
+    auctions: "Auctions",
+    trading: "Trading",
+    communication: "Communication",
+    grants: "Grants & Loans",
   },
   demo: {
     banner: {
@@ -75,5 +85,19 @@ export default {
     light: "Light",
     dark: "Dark",
     system: "System",
+  },
+  home: {
+    welcome: "Welcome to Heavenslive",
+    subtitle:
+      "The world's most transparent financial platform featuring CRED cryptocurrency, global marketplace, and interest-free financial assistance.",
+    registrationBonus: "Registration Bonus",
+    credAmount: "10,000 CRED",
+    getStarted: "Get Started Today",
+    features: {
+      marketplace: "Global Marketplace",
+      currencies: "195+ Currencies",
+      trading: "Secure Trading",
+      grants: "Interest-Free Loans",
+    },
   },
 }

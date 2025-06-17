@@ -26,6 +26,11 @@ export default {
     no: "否",
     confirm: "确认",
     submit: "提交",
+    currencies: "货币",
+    auctions: "拍卖",
+    trading: "交易",
+    communication: "通讯",
+    grants: "贷款和补助",
   },
   nav: {
     home: "首页",
@@ -39,6 +44,11 @@ export default {
     signIn: "登录",
     signUp: "注册",
     signOut: "退出",
+    currencies: "货币",
+    auctions: "拍卖",
+    trading: "交易",
+    communication: "通讯",
+    grants: "贷款和补助",
   },
   demo: {
     banner: {
@@ -75,5 +85,18 @@ export default {
     light: "浅色",
     dark: "深色",
     system: "系统",
+  },
+  home: {
+    welcome: "欢迎来到Heavenslive",
+    subtitle: "世界上最透明的金融平台，具有CRED加密货币、全球市场和无息金融援助。",
+    registrationBonus: "注册奖金",
+    credAmount: "10,000 CRED",
+    getStarted: "今天开始",
+    features: {
+      marketplace: "全球市场",
+      currencies: "195+货币",
+      trading: "安全交易",
+      grants: "无息贷款",
+    },
   },
 }

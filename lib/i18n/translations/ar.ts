@@ -26,6 +26,11 @@ export default {
     no: "لا",
     confirm: "تأكيد",
     submit: "إرسال",
+    currencies: "العملات",
+    auctions: "المزادات",
+    trading: "التداول",
+    communication: "التواصل",
+    grants: "القروض والمنح",
   },
   nav: {
     home: "الرئيسية",
@@ -39,6 +44,11 @@ export default {
     signIn: "تسجيل الدخول",
     signUp: "إنشاء حساب",
     signOut: "تسجيل الخروج",
+    currencies: "العملات",
+    auctions: "المزادات",
+    trading: "التداول",
+    communication: "التواصل",
+    grants: "القروض والمنح",
   },
   demo: {
     banner: {
@@ -75,5 +85,18 @@ export default {
     light: "فاتح",
     dark: "داكن",
     system: "النظام",
+  },
+  home: {
+    welcome: "مرحباً بك في Heavenslive",
+    subtitle: "أكثر المنصات المالية شفافية في العالم مع عملة CRED المشفرة والسوق العالمي والمساعدة المالية بدون فوائد.",
+    registrationBonus: "مكافأة التسجيل",
+    credAmount: "10,000 CRED",
+    getStarted: "ابدأ اليوم",
+    features: {
+      marketplace: "السوق العالمي",
+      currencies: "195+ عملة",
+      trading: "تداول آمن",
+      grants: "قروض بدون فوائد",
+    },
   },
 }

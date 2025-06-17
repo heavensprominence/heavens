@@ -9,18 +9,20 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Coins, ShoppingBag, Gavel, HandHeart, TrendingUp, MessageSquare, Menu, X } from "lucide-react"
 import { useState } from "react"
+import { useI18n } from "@/lib/i18n/i18n-context"
 
 export function Header() {
   const { user, logout } = useSimpleAuth()
+  const { t } = useI18n()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navigationItems = [
-    { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-    { href: "/currencies", icon: Coins, label: "Currencies" },
-    { href: "/auctions", icon: Gavel, label: "Auctions" },
-    { href: "/financial", icon: HandHeart, label: "Grants & Loans" },
-    { href: "/trading", icon: TrendingUp, label: "Trading" },
-    { href: "/messages", icon: MessageSquare, label: "Communication" },
+    { href: "/marketplace", icon: ShoppingBag, label: t("nav.marketplace") },
+    { href: "/currencies", icon: Coins, label: t("nav.currencies") },
+    { href: "/auctions", icon: Gavel, label: t("nav.auctions") },
+    { href: "/financial", icon: HandHeart, label: t("nav.grants") },
+    { href: "/trading", icon: TrendingUp, label: t("nav.trading") },
+    { href: "/messages", icon: MessageSquare, label: t("nav.communication") },
   ]
 
   return (
@@ -67,22 +69,22 @@ export function Header() {
                 className="border-gray-600 text-white hover:bg-gray-800"
                 onClick={logout}
               >
-                <span className="hidden sm:inline">Sign Out</span>
-                <span className="sm:hidden">Out</span>
+                <span className="hidden sm:inline">{t("nav.signOut")}</span>
+                <span className="sm:hidden">{t("nav.signOut")}</span>
               </Button>
             </div>
           ) : (
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm" className="text-white hover:bg-gray-800" asChild>
                 <Link href="/auth/signin">
-                  <span className="hidden sm:inline">Sign In</span>
-                  <span className="sm:hidden">In</span>
+                  <span className="hidden sm:inline">{t("nav.signIn")}</span>
+                  <span className="sm:hidden">{t("nav.signIn")}</span>
                 </Link>
               </Button>
               <Button size="sm" className="bg-white text-black hover:bg-gray-200" asChild>
                 <Link href="/auth/signup">
-                  <span className="hidden sm:inline">Sign Up</span>
-                  <span className="sm:hidden">Up</span>
+                  <span className="hidden sm:inline">{t("nav.signUp")}</span>
+                  <span className="sm:hidden">{t("nav.signUp")}</span>
                 </Link>
               </Button>
             </div>
