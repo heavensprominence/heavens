@@ -1,20 +1,30 @@
 "use client"
 
-import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { useAuth } from "@/components/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { User, Wallet, TrendingUp, Globe } from "lucide-react"
+import Link from "next/link"
 
 export default function DashboardPage() {
-  const { user, logout } = useSimpleAuth()
+  const { user, logout } = useAuth()
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Card>
-          <CardContent className="p-6">
-            <p>Please sign in to access your dashboard.</p>
+        <Card className="w-96">
+          <CardContent className="p-6 text-center">
+            <div className="mb-4">
+              <div className="h-8 w-8 bg-gradient-to-br from-gray-700 to-gray-900 border-2 border-gray-600 flex items-center justify-center rounded-full mx-auto mb-2">
+                <span className="text-xs font-bold text-gray-300">₡</span>
+              </div>
+              <h2 className="text-xl font-bold">HeavensLive</h2>
+            </div>
+            <p className="mb-4">Please sign in to access your dashboard.</p>
+            <Link href="/auth/signin">
+              <Button>Sign In</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -26,7 +36,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Welcome back, {user.name}!</h1>
-          <p className="text-muted-foreground">Here's your Heavenslive dashboard</p>
+          <p className="text-muted-foreground">Here's your HeavensLive dashboard</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="outline">{user.role}</Badge>
@@ -43,8 +53,8 @@ export default function DashboardPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,000 CRED</div>
-            <p className="text-xs text-muted-foreground">Demo balance</p>
+            <div className="text-2xl font-bold">₡{user.credBalance.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Current balance</p>
           </CardContent>
         </Card>
 
@@ -65,8 +75,8 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <div className="text-2xl font-bold">1</div>
+            <p className="text-xs text-muted-foreground">Registration bonus</p>
           </CardContent>
         </Card>
 
@@ -76,8 +86,8 @@ export default function DashboardPage() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">195+</div>
-            <p className="text-xs text-muted-foreground">Countries supported</p>
+            <div className="text-2xl font-bold">180+</div>
+            <p className="text-xs text-muted-foreground">CRED currencies</p>
           </CardContent>
         </Card>
       </div>
@@ -89,18 +99,26 @@ export default function DashboardPage() {
             <CardDescription>Common tasks you can perform</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full" variant="outline">
-              Send CRED
-            </Button>
-            <Button className="w-full" variant="outline">
-              Browse Marketplace
-            </Button>
-            <Button className="w-full" variant="outline">
-              View Transactions
-            </Button>
-            <Button className="w-full" variant="outline">
-              Account Settings
-            </Button>
+            <Link href="/wallet">
+              <Button className="w-full" variant="outline">
+                Manage Wallet
+              </Button>
+            </Link>
+            <Link href="/classifieds">
+              <Button className="w-full" variant="outline">
+                Browse Marketplace
+              </Button>
+            </Link>
+            <Link href="/auctions">
+              <Button className="w-full" variant="outline">
+                View Auctions
+              </Button>
+            </Link>
+            <Link href="/currencies">
+              <Button className="w-full" variant="outline">
+                CRED Currencies
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
@@ -114,11 +132,11 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Registration Bonus</p>
-                  <p className="text-sm text-muted-foreground">Welcome to Heavenslive</p>
+                  <p className="text-sm text-muted-foreground">Welcome to HeavensLive</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-green-600">+1,000 CRED</p>
-                  <p className="text-xs text-muted-foreground">Just now</p>
+                  <p className="font-medium text-green-600">+₡{user.credBalance}</p>
+                  <p className="text-xs text-muted-foreground">Account created</p>
                 </div>
               </div>
             </div>
