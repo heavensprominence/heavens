@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Globe, Shield, Book } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
