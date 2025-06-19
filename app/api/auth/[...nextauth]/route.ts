@@ -1,10 +1,8 @@
-import NextAuth, { type NextAuthOptions } from "next-auth"
+import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import { getUserByEmail } from "@/lib/db"
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -17,61 +15,44 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        try {
-          const user = await getUserByEmail(credentials.email.toLowerCase())
-
-          if (!user) {
-            return null
-          }
-
-          const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
-
-          if (!isValidPassword) {
-            return null
-          }
-
+        // Simple demo authentication
+        if (credentials?.email === "demo@heavenslive.com" && credentials?.password === "demo123") {
           return {
-            id: user.id.toString(),
-            email: user.email,
-            name: `${user.first_name} ${user.last_name}`,
-            role: user.role || "user",
+            id: "demo-user",
+            email: "demo@heavenslive.com",
+            name: "Demo User",
           }
-        } catch (error) {
-          console.error("Auth error:", error)
-          return null
         }
+        return null
       },
     }),
   ],
+  pages: {
+    signIn: "/auth/signin",
+  },
   session: {
     strategy: "jwt",
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
+        token.id = user.id
+        token.role = "user"
+        token.joinNumber = 1
+        token.credBalance = 15000
       }
       return token
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub!
+      if (session.user) {
+        session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.joinNumber = token.joinNumber as number
+        session.user.credBalance = token.credBalance as number
       }
       return session
     },
   },
-  pages: {
-    signIn: "/auth/signin",
-    signUp: "/auth/signup",
-    error: "/auth/error",
-  },
-  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
-}
+})
 
-const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }
