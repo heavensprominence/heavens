@@ -1,80 +1,64 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Gift, Star, Users, TrendingUp } from "lucide-react"
+import { Gift, Coins } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
-import Link from "next/link"
 
 export function RegistrationBonus() {
-  const { user } = useAuth()
+  const [showBonus, setShowBonus] = useState(false)
+  const [claimed, setClaimed] = useState(false)
+  const { user, updateCredBalance } = useAuth()
 
-  if (user) {
-    return null // Don't show bonus to logged-in users
+  useEffect(() => {
+    if (user && !claimed) {
+      const hasClaimedBonus = localStorage.getItem(`bonus_claimed_${user.id}`)
+      if (!hasClaimedBonus) {
+        setShowBonus(true)
+      } else {
+        setClaimed(true)
+      }
+    }
+  }, [user, claimed])
+
+  const claimBonus = () => {
+    if (user) {
+      const newBalance = user.credBalance + 100
+      updateCredBalance(newBalance)
+      localStorage.setItem(`bonus_claimed_${user.id}`, "true")
+      setClaimed(true)
+      setShowBonus(false)
+    }
+  }
+
+  if (!user || !showBonus || claimed) {
+    return null
   }
 
   return (
-    <section className="py-16 px-4">
-      <div className="container mx-auto">
-        <Card className="max-w-4xl mx-auto border-2 border-primary/20 shadow-lg bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20">
-          <CardContent className="p-8">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <Gift className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-3xl font-bold mb-4">🎉 Registration Bonus Available!</h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Join Heavenslive today and receive your welcome bonus
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full mb-3">
-                  <Star className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Current Bonus</h3>
-                <p className="text-2xl font-bold text-green-600">15,000 CRED</p>
-                <p className="text-sm text-muted-foreground">For joiner #1</p>
-              </div>
-
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full mb-3">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Join Number</h3>
-                <p className="text-2xl font-bold text-blue-600">#1</p>
-                <p className="text-sm text-muted-foreground">Your position in line</p>
-              </div>
-
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full mb-3">
-                  <TrendingUp className="h-6 w-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Instant Access</h3>
-                <p className="text-2xl font-bold text-purple-600">FREE</p>
-                <p className="text-sm text-muted-foreground">No fees, no catches</p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                asChild
-              >
-                <Link href="/auth/signin">
-                  Claim Your 15,000 CRED Bonus
-                  <Gift className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                * Bonus automatically deposited upon registration. Early joiners get higher bonuses!
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
+    <Card className="border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20">
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
+          <Gift className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+        </div>
+        <CardTitle className="text-xl text-yellow-800 dark:text-yellow-200">Welcome Bonus!</CardTitle>
+        <CardDescription className="text-yellow-700 dark:text-yellow-300">
+          Congratulations on joining HeavensLive! Claim your welcome bonus now.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-center">
+        <div className="mb-4 flex items-center justify-center space-x-2">
+          <Coins className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+          <span className="text-3xl font-bold text-yellow-800 dark:text-yellow-200">₡100</span>
+        </div>
+        <p className="mb-4 text-sm text-yellow-700 dark:text-yellow-300">
+          Use your CRED to trade, bid on auctions, and explore our marketplace!
+        </p>
+        <Button onClick={claimBonus} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+          Claim Your Bonus
+        </Button>
+      </CardContent>
+    </Card>
   )
 }

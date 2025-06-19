@@ -1,64 +1,75 @@
 import { NextResponse } from "next/server"
 
+// Mock transaction data for demo purposes
+const mockTransactions = [
+  {
+    id: "1",
+    amount: 100,
+    currency: "CRED",
+    type: "bonus",
+    description: "Registration bonus",
+    to_user_name: "User #12345",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    amount: 25.5,
+    currency: "USD",
+    type: "purchase",
+    description: "Marketplace purchase",
+    from_user_name: "User #12346",
+    to_user_name: "User #12347",
+    created_at: new Date(Date.now() - 300000).toISOString(),
+  },
+  {
+    id: "3",
+    amount: 50,
+    currency: "EUR",
+    type: "send",
+    description: "Currency transfer",
+    from_user_name: "User #12348",
+    to_user_name: "User #12349",
+    created_at: new Date(Date.now() - 600000).toISOString(),
+  },
+  {
+    id: "4",
+    amount: 75,
+    currency: "CRED",
+    type: "receive",
+    description: "Payment received",
+    from_user_name: "User #12350",
+    to_user_name: "User #12351",
+    created_at: new Date(Date.now() - 900000).toISOString(),
+  },
+  {
+    id: "5",
+    amount: 200,
+    currency: "GBP",
+    type: "sale",
+    description: "Auction sale",
+    from_user_name: "User #12352",
+    to_user_name: "User #12353",
+    created_at: new Date(Date.now() - 1200000).toISOString(),
+  },
+]
+
 export async function GET() {
   try {
-    // Always return mock data for now to avoid database issues
-    const mockTransactions = [
-      {
-        id: "1",
-        type: "registration_bonus",
-        amount: 15000,
-        currency: "USD-CRED",
-        description: "Registration bonus for joiner #1",
-        status: "approved",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        type: "minting",
-        amount: 1000,
-        currency: "EUR-CRED",
-        description: "CRED minting operation",
-        status: "approved",
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: "3",
-        type: "transfer",
-        amount: 50,
-        currency: "GBP-CRED",
-        description: "Transfer between users",
-        status: "approved",
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-      },
-      {
-        id: "4",
-        type: "trading",
-        amount: 250,
-        currency: "CAD-CRED",
-        description: "Currency trading transaction",
-        status: "approved",
-        createdAt: new Date(Date.now() - 10800000).toISOString(),
-      },
-      {
-        id: "5",
-        type: "grant",
-        amount: 100,
-        currency: "AUD-CRED",
-        description: "Community grant distribution",
-        status: "approved",
-        createdAt: new Date(Date.now() - 14400000).toISOString(),
-      },
-    ]
-
+    // In a real app, this would fetch from the database
+    // For now, return mock data
     return NextResponse.json({
+      success: true,
       transactions: mockTransactions,
     })
   } catch (error) {
-    console.error("Failed to fetch public ledger:", error)
-    return NextResponse.json({
-      transactions: [],
-      error: "Failed to fetch transactions",
-    })
+    console.error("Error fetching public ledger:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch transactions",
+        transactions: [],
+      },
+      { status: 500 },
+    )
   }
 }

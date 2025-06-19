@@ -1,61 +1,89 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Shield, Zap, Coins, Users, TrendingUp, Globe } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Coins, ShoppingBag, Gavel, Wallet, Globe, TrendingUp, Shield, Users, BarChart3 } from "lucide-react"
+
+const features = [
+  {
+    icon: Coins,
+    title: "CRED Currency System",
+    description: "Our stable currency backed by 180+ global currencies with real-time conversion rates.",
+    color: "text-blue-600 dark:text-blue-400",
+  },
+  {
+    icon: ShoppingBag,
+    title: "Global Marketplace",
+    description: "Buy and sell products worldwide with integrated currency conversion and secure payments.",
+    color: "text-green-600 dark:text-green-400",
+  },
+  {
+    icon: Gavel,
+    title: "Auction Platform",
+    description: "Participate in forward and reverse auctions with transparent bidding and automatic settlements.",
+    color: "text-purple-600 dark:text-purple-400",
+  },
+  {
+    icon: Wallet,
+    title: "Multi-Currency Wallet",
+    description: "Store, send, and receive any of our 180+ supported currencies with instant conversion.",
+    color: "text-orange-600 dark:text-orange-400",
+  },
+  {
+    icon: Globe,
+    title: "Global Reach",
+    description: "Connect with users worldwide and trade in their local currencies seamlessly.",
+    color: "text-cyan-600 dark:text-cyan-400",
+  },
+  {
+    icon: TrendingUp,
+    title: "Real-Time Rates",
+    description: "Live currency exchange rates updated continuously for accurate pricing.",
+    color: "text-red-600 dark:text-red-400",
+  },
+  {
+    icon: Shield,
+    title: "Secure Transactions",
+    description: "Bank-level security with encrypted transactions and fraud protection.",
+    color: "text-indigo-600 dark:text-indigo-400",
+  },
+  {
+    icon: Users,
+    title: "Community Driven",
+    description: "Join a growing community of global traders and marketplace participants.",
+    color: "text-pink-600 dark:text-pink-400",
+  },
+  {
+    icon: BarChart3,
+    title: "Public Ledger",
+    description: "Complete transparency with our public transaction ledger and audit trail.",
+    color: "text-yellow-600 dark:text-yellow-400",
+  },
+]
 
 export function Features() {
-  const features = [
-    {
-      icon: Coins,
-      title: "CRED Currency",
-      description:
-        "Stable coins pegged to world currencies. Transparent, environmentally friendly minting and burning.",
-    },
-    {
-      icon: Shield,
-      title: "Secure & Transparent",
-      description:
-        "Built with security and transparency at its core. Public ledger shows all transactions in real-time.",
-    },
-    {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Instant transactions and real-time updates. Experience the fastest financial platform.",
-    },
-    {
-      icon: Users,
-      title: "Fair Marketplace",
-      description: "Free classifieds and auctions. No hidden fees, just fair trading for everyone.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Registration Rewards",
-      description: "Early joiners get higher bonuses. The earlier you join, the more CRED you receive.",
-    },
-    {
-      icon: Globe,
-      title: "Global Reach",
-      description: "Support for all world currencies with local CRED variants. Trade globally, think locally.",
-    },
-  ]
-
   return (
-    <section className="py-20 px-4">
-      <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Why Choose Heavenslive?</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Experience the future of finance with our transparent platform designed to help people live better lives.
+    <section className="py-20 bg-gray-50 dark:bg-gray-900/50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Everything You Need for Global Trading
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Comprehensive tools and features designed to make international trading simple, secure, and profitable.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                  <feature.icon className="h-8 w-8 text-primary" />
+            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <div
+                  className={`w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4`}
+                >
+                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
                 </div>
-                <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <CardTitle className="text-xl">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">{feature.description}</CardDescription>
               </CardContent>
             </Card>
           ))}

@@ -3,21 +3,21 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useAuth } from "@/components/auth-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { LogIn } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2 } from "lucide-react"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { login } = useAuth()
+  const { login } = useSimpleAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,41 +28,45 @@ export default function SignInPage() {
     try {
       const success = await login(email, password)
       if (success) {
-        router.push("/")
+        router.push("/dashboard")
       } else {
-        setError("Invalid credentials")
+        setError("Login failed. Try admin@demo.com / demo123")
       }
     } catch (error) {
-      setError("Something went wrong")
+      setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4 mx-auto">
-            <LogIn className="h-6 w-6 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <p className="text-muted-foreground">Sign in to your Heavenslive account</p>
+          <CardTitle>Sign In to Heavenslive</CardTitle>
+          <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="demo@heavenslive.com"
+                placeholder="admin@demo.com"
                 required
               />
             </div>
-            <div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -73,23 +77,31 @@ export default function SignInPage() {
                 required
               />
             </div>
-            {error && <div className="text-sm text-red-600">{error}</div>}
+
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/auth/signup" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-              <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Demo Credentials:</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400">Email: demo@heavenslive.com</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400">Password: demo123</p>
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Demo Accounts:</h3>
+            <div className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+              <div>
+                <strong>Admin:</strong> admin@demo.com / demo123
+              </div>
+              <div>
+                <strong>User:</strong> user@demo.com / demo123
+              </div>
+              <div className="text-xs mt-2 text-blue-600 dark:text-blue-300">
+                Or use any email/password to create a demo account
+              </div>
             </div>
           </div>
         </CardContent>

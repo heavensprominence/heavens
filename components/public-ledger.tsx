@@ -1,89 +1,123 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useEffect, useState } from "react"
-import type { Transaction } from "@/lib/types"
-import { formatDistanceToNow } from "date-fns"
+import { Button } from "@/components/ui/button"
+import { Eye, ArrowUpRight, ArrowDownLeft, Gift, ShoppingBag, RefreshCw } from "lucide-react"
+import Link from "next/link"
+
+interface Transaction {
+  id: string
+  amount: number
+  currency: string
+  type: "send" | "receive" | "bonus" | "purchase" | "sale"
+  description: string
+  from_user_name?: string
+  to_user_name?: string
+  created_at: string
+}
+
+const getTransactionIcon = (type: string) => {
+  switch (type) {
+    case "send":
+      return <ArrowUpRight className="w-4 h-4 text-red-500" />
+    case "receive":
+      return <ArrowDownLeft className="w-4 h-4 text-green-500" />
+    case "bonus":
+      return <Gift className="w-4 h-4 text-yellow-500" />
+    case "purchase":
+    case "sale":
+      return <ShoppingBag className="w-4 h-4 text-blue-500" />
+    default:
+      return <ArrowUpRight className="w-4 h-4" />
+  }
+}
+
+const getTransactionColor = (type: string) => {
+  switch (type) {
+    case "send":
+      return "destructive"
+    case "receive":
+      return "default"
+    case "bonus":
+      return "secondary"
+    case "purchase":
+    case "sale":
+      return "outline"
+    default:
+      return "outline"
+  }
+}
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+
+  if (diffInMinutes < 1) return "Just now"
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
+  return `${Math.floor(diffInMinutes / 1440)}d ago`
+}
 
 export function PublicLedger() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchTransactions()
-
-    // Set up real-time updates
-    const interval = setInterval(fetchTransactions, 5000)
-    return () => clearInterval(interval)
-  }, [])
+  const [error, setError] = useState<string | null>(null)
 
   const fetchTransactions = async () => {
     try {
+      setError(null)
       const response = await fetch("/api/ledger/public")
-      if (response.ok) {
-        const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
         setTransactions(data.transactions || [])
       } else {
-        console.error("Failed to fetch transactions:", response.status)
-        setTransactions([])
+        throw new Error(data.error || "Failed to fetch transactions")
       }
     } catch (error) {
-      console.error("Failed to fetch transactions:", error)
-      setTransactions([])
+      console.error("Error fetching transactions:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch transactions")
+      // Don't set empty array on error, keep existing transactions
     } finally {
       setLoading(false)
     }
   }
 
-  const getTransactionTypeColor = (type: string) => {
-    switch (type) {
-      case "minting":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-      case "burning":
-        return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-      case "registration_bonus":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-      case "transfer":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400"
-      case "grant":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-      case "loan_interest_free":
-        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400"
-      case "loan_interest_bearing":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400"
-      case "trading":
-        return "bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-400"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-    }
-  }
+  useEffect(() => {
+    fetchTransactions()
 
-  const formatTransactionType = (type: string) => {
-    return type
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  }
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(fetchTransactions, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
-  const maskSensitiveInfo = (description: string) => {
-    // Replace email addresses and sensitive info with asterisks
-    return description
-      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "***@***.***")
-      .replace(/\b\d{4,}\b/g, "****")
-  }
-
-  if (loading) {
+  if (loading && transactions.length === 0) {
     return (
-      <section className="py-16 px-4">
-        <div className="container mx-auto">
-          <Card className="max-w-4xl mx-auto">
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-center">Public Ledger</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                Public Transaction Ledger
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">Loading transactions...</div>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -92,57 +126,88 @@ export function PublicLedger() {
   }
 
   return (
-    <section className="py-16 px-4 bg-muted/30">
-      <div className="container mx-auto">
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center flex items-center justify-center gap-2">
-              📊 Public Ledger
-              <Badge variant="secondary" className="ml-2">
-                Live
-              </Badge>
-            </CardTitle>
-            <p className="text-center text-muted-foreground">
-              Real-time view of the last 10 transactions on the Heavenslive platform
+    <section className="py-16">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Public Transaction Ledger</h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Complete transparency - view all platform transactions in real-time
             </p>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-96">
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="w-5 h-5" />
+                  Recent Transactions
+                  <Badge variant="secondary" className="ml-2">
+                    Live
+                  </Badge>
+                </CardTitle>
+                <Button variant="outline" size="sm" onClick={fetchTransactions} disabled={loading}>
+                  <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-red-600 dark:text-red-400 text-sm">Error: {error}</p>
+                </div>
+              )}
+
               <div className="space-y-4">
-                {transactions && transactions.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No transactions yet. Be the first to join!
+                {transactions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    {error ? "Unable to load transactions" : "No transactions yet. Be the first to join!"}
                   </div>
                 ) : (
-                  (transactions || []).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge className={getTransactionTypeColor(transaction.type)}>
-                            {formatTransactionType(transaction.type)}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(transaction.createdAt), { addSuffix: true })}
-                          </span>
+                  transactions.slice(0, 10).map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        {getTransactionIcon(transaction.type)}
+                        <div>
+                          <div className="font-medium">{transaction.description}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {transaction.from_user_name && transaction.to_user_name
+                              ? `${transaction.from_user_name} → ${transaction.to_user_name}`
+                              : transaction.to_user_name || "System Transaction"}
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-gray-500">
+                            {formatTimeAgo(transaction.created_at)}
+                          </div>
                         </div>
-                        <p className="text-sm">{maskSensitiveInfo(transaction.description)}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">
-                          {transaction.amount > 0 ? "+" : ""}
-                          {transaction.amount.toLocaleString()} {transaction.currency}
-                        </p>
-                        <Badge variant={transaction.status === "approved" ? "default" : "secondary"}>
-                          {transaction.status}
-                        </Badge>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="font-medium">
+                            {transaction.currency === "CRED" ? "₡" : ""}
+                            {transaction.amount.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{transaction.currency}</div>
+                        </div>
+                        <Badge variant={getTransactionColor(transaction.type) as any}>{transaction.type}</Badge>
                       </div>
                     </div>
                   ))
                 )}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+
+              {transactions.length > 10 && (
+                <div className="text-center mt-6">
+                  <Button variant="outline" asChild>
+                    <Link href="/ledger">View All Transactions</Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </section>
   )

@@ -1,25 +1,76 @@
-// Simple custom authentication system
-export interface User {
-  id: string
-  email: string
-  name: string
-  role: string
-  joinNumber: number
-  credBalance: number
+import type { NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
+import { getUserByEmail } from "@/lib/db"
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        try {
+          const user = await getUserByEmail(credentials.email.toLowerCase())
+
+          if (!user) {
+            return null
+          }
+
+          const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
+
+          if (!isValidPassword) {
+            return null
+          }
+
+          return {
+            id: user.id.toString(),
+            email: user.email,
+            name: `${user.first_name} ${user.last_name}`,
+            role: user.role || "user",
+          }
+        } catch (error) {
+          console.error("Auth error:", error)
+          return null
+        }
+      },
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.sub!
+        session.user.role = token.role as string
+      }
+      return session
+    },
+  },
+  pages: {
+    signIn: "/auth/signin",
+    signUp: "/auth/signup",
+    error: "/auth/error",
+  },
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 }
 
-export const DEMO_USER: User = {
-  id: "demo-user-1",
-  email: "demo@heavenslive.com",
-  name: "Demo User",
-  role: "user",
-  joinNumber: 1,
-  credBalance: 15000,
-}
-
-export function validateCredentials(email: string, password: string): User | null {
-  if (email === "demo@heavenslive.com" && password === "demo123") {
-    return DEMO_USER
-  }
-  return null
-}
+export default authOptions

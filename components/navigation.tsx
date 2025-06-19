@@ -2,145 +2,164 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useAuth } from "@/components/auth-context"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Globe, Menu, X, Wallet } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, Moon, Sun, User, LogOut, Globe } from "lucide-react"
 import { useTheme } from "next-themes"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/components/auth-context"
+import { useI18n } from "@/lib/i18n"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Navigation() {
-  const { user, logout, loading } = useAuth()
+  const [isOpen, setIsOpen] = useState(false)
   const { theme, setTheme } = useTheme()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const { t, locale, setLocale } = useI18n()
+
+  const navItems = [
+    { href: "/", label: t("nav.home") },
+    { href: "/currencies", label: t("nav.currencies") },
+    { href: "/classifieds", label: t("nav.classifieds") },
+    { href: "/auctions", label: t("nav.auctions") },
+    { href: "/wallet", label: t("nav.wallet") },
+    { href: "/ledger", label: t("nav.ledger") },
+  ]
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-primary">Heavenslive</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors">
-              Home
+          <div className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-2">
+              {/* Single CRED coin in dark colors */}
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 border-2 border-gray-600 flex items-center justify-center">
+                <span className="text-xs font-bold text-gray-300">₡</span>
+              </div>
+              <span className="text-xl font-bold">HeavensLive</span>
             </Link>
-            <Link href="/currencies" className="text-foreground hover:text-primary transition-colors">
-              CRED Currency
-            </Link>
-            <Link href="/classifieds" className="text-foreground hover:text-primary transition-colors">
-              Classifieds
-            </Link>
-            <Link href="/auctions" className="text-foreground hover:text-primary transition-colors">
-              Auctions
-            </Link>
-            <Link href="/trading" className="text-foreground hover:text-primary transition-colors">
-              Trading
-            </Link>
-            {user && (
-              <Link href="/wallet" className="text-foreground hover:text-primary transition-colors">
-                Wallet
-              </Link>
-            )}
           </div>
 
-          {/* Right side controls */}
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right side actions */}
           <div className="flex items-center space-x-4">
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="hidden sm:flex">
-                  <Globe className="h-4 w-4 mr-2" />
-                  English
+                <Button variant="ghost" size="icon">
+                  <Globe className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>🇺🇸 English</DropdownMenuItem>
-                <DropdownMenuItem>🇪🇸 Español</DropdownMenuItem>
-                <DropdownMenuItem>🇫🇷 Français</DropdownMenuItem>
-                <DropdownMenuItem>🇩🇪 Deutsch</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocale("en")}>🇺🇸 English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocale("es")}>🇪🇸 Español</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme Toggle */}
-            <Button variant="ghost" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
             </Button>
 
-            {/* Auth Buttons */}
-            {loading ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
-            ) : user ? (
-              <div className="flex items-center space-x-2">
-                <div className="hidden sm:flex items-center space-x-2 text-sm">
-                  <Wallet className="h-4 w-4" />
-                  <span className="font-medium">{user.credBalance.toFixed(2)} CRED</span>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      {user.name || user.email}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">₡{user.credBalance}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">{t("nav.profile")}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/wallet">{t("nav.wallet")}</Link>
+                  </DropdownMenuItem>
+                  {user.role === "admin" && (
                     <DropdownMenuItem asChild>
-                      <Link href="/wallet">Wallet</Link>
+                      <Link href="/admin">{t("nav.admin")}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t("nav.signOut")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/auth/signin">Sign In</Link>
+                <Button variant="ghost" asChild>
+                  <Link href="/auth/signin">{t("nav.signIn")}</Link>
                 </Button>
-                <Button size="sm" asChild>
-                  <Link href="/auth/signin">Sign Up</Link>
+                <Button asChild>
+                  <Link href="/auth/signup">{t("nav.signUp")}</Link>
                 </Button>
               </div>
             )}
 
-            {/* Mobile Menu Button */}
-            <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
+            {/* Mobile menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <div className="flex flex-col space-y-4 mt-8">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="text-lg font-medium transition-colors hover:text-primary"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  {!user && (
+                    <>
+                      <Link
+                        href="/auth/signin"
+                        className="text-lg font-medium transition-colors hover:text-primary"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {t("nav.signIn")}
+                      </Link>
+                      <Link
+                        href="/auth/signup"
+                        className="text-lg font-medium transition-colors hover:text-primary"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {t("nav.signUp")}
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <div className="flex flex-col space-y-4">
-              <Link href="/" className="text-foreground hover:text-primary transition-colors">
-                Home
-              </Link>
-              <Link href="/currencies" className="text-foreground hover:text-primary transition-colors">
-                CRED Currency
-              </Link>
-              <Link href="/classifieds" className="text-foreground hover:text-primary transition-colors">
-                Classifieds
-              </Link>
-              <Link href="/auctions" className="text-foreground hover:text-primary transition-colors">
-                Auctions
-              </Link>
-              <Link href="/trading" className="text-foreground hover:text-primary transition-colors">
-                Trading
-              </Link>
-              {user && (
-                <Link href="/wallet" className="text-foreground hover:text-primary transition-colors">
-                  Wallet
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   )

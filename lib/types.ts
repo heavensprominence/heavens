@@ -1,59 +1,51 @@
 export interface User {
   id: string
   email: string
-  name?: string
-  role: "user" | "admin" | "super_admin" | "owner"
+  name: string
+  role: "user" | "admin"
   joinNumber: number
-  credBalance: number
+  registrationBonus: number
+  walletBalance: number
   createdAt: Date
   updatedAt: Date
 }
 
 export interface Currency {
-  code: string
+  id: string
   name: string
-  emoji: string
-  exchangeRate: number
+  code: string
+  symbol: string
+  country: string
+  flag: string
+  credValue: number
+  isActive: boolean
 }
 
 export interface Transaction {
   id: string
-  type:
-    | "minting"
-    | "burning"
-    | "transfer"
-    | "registration_bonus"
-    | "grant"
-    | "loan_interest_free"
-    | "loan_interest_bearing"
-    | "trading"
-    | "auction_payment"
-    | "classified_payment"
-    | "refund"
+  fromUserId: string
+  toUserId: string
   amount: number
   currency: string
-  fromUserId?: string
-  toUserId?: string
+  type: "send" | "receive" | "bonus" | "purchase" | "sale"
   description: string
-  status: "pending" | "approved" | "rejected"
-  approvedBy?: string
+  status: "pending" | "completed" | "failed"
   createdAt: Date
 }
 
-export interface ClassifiedListing {
+export interface Classified {
   id: string
   userId: string
   title: string
   description: string
   price: number
   currency: string
-  type: "for_sale" | "wanted"
-  images: string[]
+  category: string
   location: string
+  images: string[]
   status: "active" | "sold" | "expired"
-  rating?: number
   createdAt: Date
-  expiresAt: Date
+  updatedAt: Date
 }
 
 export interface Auction {
@@ -61,18 +53,21 @@ export interface Auction {
   userId: string
   title: string
   description: string
-  type: "forward" | "reverse"
   startingPrice: number
+  currentPrice: number
   reservePrice?: number
   buyNowPrice?: number
   currency: string
-  duration: number
-  images: string[]
+  category: string
   location: string
+  images: string[]
+  type: "forward" | "reverse"
   status: "active" | "ended" | "cancelled"
-  bidsVisible: boolean
+  endTime: Date
+  bidCount: number
+  highestBidderId?: string
   createdAt: Date
-  endsAt: Date
+  updatedAt: Date
 }
 
 export interface Bid {
@@ -80,7 +75,5 @@ export interface Bid {
   auctionId: string
   userId: string
   amount: number
-  milestones?: string
-  details?: string
   createdAt: Date
 }
