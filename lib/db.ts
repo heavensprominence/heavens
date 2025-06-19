@@ -6,6 +6,8 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL)
 
+// Export the sql instance as 'db' for compatibility
+export const db = sql
 export { sql }
 
 export async function getUser(email: string) {
@@ -19,6 +21,9 @@ export async function getUser(email: string) {
     return null
   }
 }
+
+// Export getUserByEmail as an alias for getUser for compatibility
+export const getUserByEmail = getUser
 
 export async function createUser(userData: {
   email: string
