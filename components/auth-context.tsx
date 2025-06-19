@@ -5,18 +5,18 @@ import { createContext, useContext, useState, useEffect } from "react"
 
 interface User {
   id: string
-  email: string
   name: string
-  role: string
+  email: string
   credBalance: number
+  joinedAt: string
+  role: "user" | "admin"
 }
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (firstName: string, lastName: string, email: string, password: string) => Promise<boolean>
-  logout: () => void
-  loading: boolean
+  signIn: (email: string, password: string) => Promise<boolean>
+  signUp: (email: string, password: string, name: string, bonus: number) => Promise<boolean>
+  signOut: () => void
   updateCredBalance: (newBalance: number) => void
 }
 
@@ -32,91 +32,86 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem("heavenslive_user")
-      if (savedUser) {
-        setUser(JSON.parse(savedUser))
-      }
-    } catch (error) {
-      console.log("No saved user found")
+    // Check for existing session
+    const savedUser = localStorage.getItem("heavenslive_user")
+    if (savedUser) {
+      setUser(JSON.parse(savedUser))
     }
-    setLoading(false)
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      // Demo accounts
-      if (email === "admin@heavenslive.com" && password === "admin123") {
-        const adminUser = {
-          id: "admin-demo",
-          email: "admin@heavenslive.com",
-          name: "Admin Demo",
-          role: "admin",
-          credBalance: 10000,
-        }
-        setUser(adminUser)
-        localStorage.setItem("heavenslive_user", JSON.stringify(adminUser))
-        return true
-      }
+  const signIn = async (email: string, password: string): Promise<boolean> => {
+    // Check if user exists
+    const users = JSON.parse(localStorage.getItem("heavenslive_users") || "[]")
+    const existingUser = users.find((u: any) => u.email === email && u.password === password)
 
-      if (email === "user@demo.com" && password === "demo123") {
-        const demoUser = {
-          id: "user-demo",
-          email: "user@demo.com",
-          name: "Demo User",
-          role: "user",
-          credBalance: 100, // Registration bonus
-        }
-        setUser(demoUser)
-        localStorage.setItem("heavenslive_user", JSON.stringify(demoUser))
-        return true
+    if (existingUser) {
+      const userSession = {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+        credBalance: existingUser.credBalance,
+        joinedAt: existingUser.joinedAt,
+        role: existingUser.role,
       }
-
-      // For any other email/password, create a demo account
-      const newUser = {
-        id: `user-${Date.now()}`,
-        email: email,
-        name: email.split("@")[0],
-        role: "user",
-        credBalance: 100, // Registration bonus
-      }
-      setUser(newUser)
-      localStorage.setItem("heavenslive_user", JSON.stringify(newUser))
+      setUser(userSession)
+      localStorage.setItem("heavenslive_user", JSON.stringify(userSession))
       return true
-    } catch (error) {
-      console.error("Login error:", error)
-      return false
     }
+    return false
   }
 
-  const signup = async (firstName: string, lastName: string, email: string, password: string): Promise<boolean> => {
-    try {
-      const newUser = {
-        id: `user-${Date.now()}`,
-        email: email,
-        name: `${firstName} ${lastName}`,
-        role: "user",
-        credBalance: 100, // Registration bonus
-      }
-      setUser(newUser)
-      localStorage.setItem("heavenslive_user", JSON.stringify(newUser))
-      return true
-    } catch (error) {
-      console.error("Signup error:", error)
+  const signUp = async (email: string, password: string, name: string, bonus: number): Promise<boolean> => {
+    const users = JSON.parse(localStorage.getItem("heavenslive_users") || "[]")
+
+    // Check if user already exists
+    if (users.find((u: any) => u.email === email)) {
       return false
     }
+
+    const newUser = {
+      id: Date.now().toString(),
+      name,
+      email,
+      password,
+      credBalance: bonus,
+      joinedAt: new Date().toISOString(),
+      role: "user" as const,
+    }
+
+    users.push(newUser)
+    localStorage.setItem("heavenslive_users", JSON.stringify(users))
+
+    const userSession = {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      credBalance: newUser.credBalance,
+      joinedAt: newUser.joinedAt,
+      role: newUser.role,
+    }
+    setUser(userSession)
+    localStorage.setItem("heavenslive_user", JSON.stringify(userSession))
+
+    // Add registration bonus transaction to public ledger
+    const publicLedger = JSON.parse(localStorage.getItem("public_ledger") || "[]")
+    publicLedger.unshift({
+      id: Date.now().toString(),
+      from: "HeavensLive System",
+      to: name,
+      amount: bonus,
+      timestamp: new Date().toISOString(),
+      type: "bonus",
+    })
+    localStorage.setItem("public_ledger", JSON.stringify(publicLedger.slice(0, 100)))
+
+    return true
   }
 
-  const logout = () => {
-    try {
-      setUser(null)
-      localStorage.removeItem("heavenslive_user")
-    } catch (error) {
-      console.error("Logout error:", error)
-    }
+  const signOut = () => {
+    setUser(null)
+    localStorage.removeItem("heavenslive_user")
   }
 
   const updateCredBalance = (newBalance: number) => {
@@ -124,12 +119,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updatedUser = { ...user, credBalance: newBalance }
       setUser(updatedUser)
       localStorage.setItem("heavenslive_user", JSON.stringify(updatedUser))
+
+      // Update in users array
+      const users = JSON.parse(localStorage.getItem("heavenslive_users") || "[]")
+      const updatedUsers = users.map((u: any) => (u.id === user.id ? { ...u, credBalance: newBalance } : u))
+      localStorage.setItem("heavenslive_users", JSON.stringify(updatedUsers))
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading, updateCredBalance }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateCredBalance }}>{children}</AuthContext.Provider>
   )
 }

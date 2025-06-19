@@ -185,10 +185,7 @@ export function PublicLedger() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <div className="font-medium">
-                            {transaction.currency === "CRED" ? "₡" : ""}
-                            {transaction.amount.toLocaleString()}
-                          </div>
+                          <div className="font-medium">₡{transaction.amount.toLocaleString()}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{transaction.currency}</div>
                         </div>
                         <Badge variant={getTransactionColor(transaction.type) as any}>{transaction.type}</Badge>

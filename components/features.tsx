@@ -1,89 +1,93 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Coins, ShoppingBag, Gavel, Wallet, Globe, TrendingUp, Shield, Users, BarChart3 } from "lucide-react"
+"use client"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Coins, ShoppingCart, Gavel, TrendingUp, Wallet, Gift, Shield, BarChart3, Users } from "lucide-react"
 
 const features = [
   {
     icon: Coins,
-    title: "CRED Currency System",
-    description: "Our stable currency backed by 180+ global currencies with real-time conversion rates.",
-    color: "text-blue-600 dark:text-blue-400",
+    title: "CRED Currency",
+    description: "Universal stable coin backed by 180+ global currencies",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-500/10",
   },
   {
-    icon: ShoppingBag,
-    title: "Global Marketplace",
-    description: "Buy and sell products worldwide with integrated currency conversion and secure payments.",
-    color: "text-green-600 dark:text-green-400",
+    icon: ShoppingCart,
+    title: "Classifieds",
+    description: "Buy and sell anything with CRED payments",
+    color: "text-blue-500",
+    bgColor: "bg-blue-500/10",
   },
   {
     icon: Gavel,
-    title: "Auction Platform",
-    description: "Participate in forward and reverse auctions with transparent bidding and automatic settlements.",
-    color: "text-purple-600 dark:text-purple-400",
-  },
-  {
-    icon: Wallet,
-    title: "Multi-Currency Wallet",
-    description: "Store, send, and receive any of our 180+ supported currencies with instant conversion.",
-    color: "text-orange-600 dark:text-orange-400",
-  },
-  {
-    icon: Globe,
-    title: "Global Reach",
-    description: "Connect with users worldwide and trade in their local currencies seamlessly.",
-    color: "text-cyan-600 dark:text-cyan-400",
+    title: "Auctions",
+    description: "Forward and reverse auctions with smart contracts",
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
   },
   {
     icon: TrendingUp,
-    title: "Real-Time Rates",
-    description: "Live currency exchange rates updated continuously for accurate pricing.",
-    color: "text-red-600 dark:text-red-400",
+    title: "Trading",
+    description: "Real-time currency trading with zero fees",
+    color: "text-green-500",
+    bgColor: "bg-green-500/10",
+  },
+  {
+    icon: Wallet,
+    title: "Multi-Wallet",
+    description: "Secure wallets for all 180+ supported currencies",
+    color: "text-orange-500",
+    bgColor: "bg-orange-500/10",
+  },
+  {
+    icon: Gift,
+    title: "Registration Bonus",
+    description: "Get up to ₡15,000 CRED for joining early",
+    color: "text-pink-500",
+    bgColor: "bg-pink-500/10",
   },
   {
     icon: Shield,
-    title: "Secure Transactions",
-    description: "Bank-level security with encrypted transactions and fraud protection.",
-    color: "text-indigo-600 dark:text-indigo-400",
-  },
-  {
-    icon: Users,
-    title: "Community Driven",
-    description: "Join a growing community of global traders and marketplace participants.",
-    color: "text-pink-600 dark:text-pink-400",
+    title: "Public Ledger",
+    description: "Transparent blockchain-based transaction history",
+    color: "text-cyan-500",
+    bgColor: "bg-cyan-500/10",
   },
   {
     icon: BarChart3,
-    title: "Public Ledger",
-    description: "Complete transparency with our public transaction ledger and audit trail.",
-    color: "text-yellow-600 dark:text-yellow-400",
+    title: "Analytics",
+    description: "Advanced trading charts and market analysis",
+    color: "text-red-500",
+    bgColor: "bg-red-500/10",
+  },
+  {
+    icon: Users,
+    title: "Community",
+    description: "Connect with traders and marketplace users",
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-500/10",
   },
 ]
 
 export function Features() {
   return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900/50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Everything You Need for Global Trading
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Comprehensive tools and features designed to make international trading simple, secure, and profitable.
-          </p>
-        </div>
+    <section className="py-16 px-4 bg-gray-800">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-12 text-white">Platform Features</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div
-                  className={`w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4`}
-                >
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
+            <Card key={index} className="bg-gray-700 border-gray-600 hover:bg-gray-650 transition-colors">
+              <CardContent className="p-6">
+                <div className={`${feature.bgColor} p-3 rounded-lg w-fit mb-4`}>
+                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
                 </div>
-                <CardTitle className="text-xl">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">{feature.description}</CardDescription>
+                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
+                <p className="text-gray-400 mb-4">{feature.description}</p>
+                <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-600">
+                  Learn More
+                </Button>
               </CardContent>
             </Card>
           ))}
