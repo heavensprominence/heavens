@@ -4,13 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { useAuth } from "@/components/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import Link from "next/link"
 
 export default function SignUpPage() {
   const [firstName, setFirstName] = useState("")
@@ -19,7 +20,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { signup } = useSimpleAuth()
+  const { signup } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +31,7 @@ export default function SignUpPage() {
     try {
       const success = await signup(firstName, lastName, email, password)
       if (success) {
-        router.push("/dashboard")
+        router.push("/")
       } else {
         setError("Signup failed. Please try again.")
       }
@@ -42,11 +43,17 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-8 w-8 bg-gradient-to-br from-gray-700 to-gray-900 border-2 border-gray-600 flex items-center justify-center rounded-full">
+              <span className="text-xs font-bold text-gray-300">₡</span>
+            </div>
+            <span className="text-xl font-bold">HeavensLive</span>
+          </div>
           <CardTitle>Create Account</CardTitle>
-          <CardDescription>Join Heavenslive and get started</CardDescription>
+          <CardDescription>Join HeavensLive and get ₡100 CRED bonus</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,7 +105,7 @@ export default function SignUpPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Create a strong password"
                 required
               />
             </div>
@@ -110,15 +117,18 @@ export default function SignUpPage() {
                   Creating account...
                 </>
               ) : (
-                "Create Account"
+                "Create Account & Get ₡100 CRED"
               )}
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <div className="text-sm text-green-800 dark:text-green-200">
-              <strong>Demo Mode:</strong> Any email and password will create a working demo account instantly!
-            </div>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/auth/signin" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </CardContent>
       </Card>

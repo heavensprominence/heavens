@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSimpleAuth } from "@/components/simple-auth-provider"
+import { useAuth } from "@/components/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +17,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const { login } = useSimpleAuth()
+  const { login } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,9 +28,9 @@ export default function SignInPage() {
     try {
       const success = await login(email, password)
       if (success) {
-        router.push("/dashboard")
+        router.push("/")
       } else {
-        setError("Login failed. Try admin@demo.com / demo123")
+        setError("Login failed. Try admin@heavenslive.com / admin123")
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
@@ -40,10 +40,16 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>Sign In to Heavenslive</CardTitle>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-8 w-8 bg-gradient-to-br from-gray-700 to-gray-900 border-2 border-gray-600 flex items-center justify-center rounded-full">
+              <span className="text-xs font-bold text-gray-300">₡</span>
+            </div>
+            <span className="text-xl font-bold">HeavensLive</span>
+          </div>
+          <CardTitle>Sign In</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,7 +67,7 @@ export default function SignInPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@demo.com"
+                placeholder="admin@heavenslive.com"
                 required
               />
             </div>
@@ -73,7 +79,7 @@ export default function SignInPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="demo123"
+                placeholder="admin123"
                 required
               />
             </div>
@@ -90,18 +96,16 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Demo Accounts:</h3>
-            <div className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+          <div className="mt-6 p-4 bg-muted rounded-lg">
+            <h3 className="font-medium mb-2">Demo Accounts:</h3>
+            <div className="space-y-1 text-sm text-muted-foreground">
               <div>
-                <strong>Admin:</strong> admin@demo.com / demo123
+                <strong>Admin:</strong> admin@heavenslive.com / admin123
               </div>
               <div>
                 <strong>User:</strong> user@demo.com / demo123
               </div>
-              <div className="text-xs mt-2 text-blue-600 dark:text-blue-300">
-                Or use any email/password to create a demo account
-              </div>
+              <div className="text-xs mt-2">Or use any email/password to create a demo account</div>
             </div>
           </div>
         </CardContent>
